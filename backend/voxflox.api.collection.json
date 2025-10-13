@@ -1,0 +1,820 @@
+{
+  "info": {
+    "name": "VoxFlow API - Complete Collection",
+    "description": "Complete API testing collection for VoxFlow Voice AI Platform",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "agent_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "run_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "campaign_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('token', jsonData.data.token);",
+                  "    console.log('✅ Token saved');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@voxflow.com\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Login with hardcoded credentials"
+          }
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "me"]
+            },
+            "description": "Get authenticated user details"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Agents",
+      "item": [
+        {
+          "name": "Create Agent",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('agent_id', jsonData.data.id);",
+                  "    console.log('✅ Agent ID saved:', jsonData.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Lead Qualification Agent\",\n  \"type\": \"OUTBOUND\",\n  \"use_case\": \"Lead Qualification\",\n  \"description\": \"You are a friendly sales assistant calling to qualify leads for our B2B software product. Ask about their company size, current challenges, and budget. Be conversational and helpful.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/agents",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "agents"]
+            },
+            "description": "Create a new voice agent"
+          }
+        },
+        {
+          "name": "Get All Agents",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/agents",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "agents"]
+            },
+            "description": "List all agents for current user"
+          }
+        },
+        {
+          "name": "Get Agent by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/agents/{{agent_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "agents", "{{agent_id}}"]
+            },
+            "description": "Get single agent details"
+          }
+        },
+        {
+          "name": "Get Agent Run History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/agents/{{agent_id}}/runs?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "agents", "{{agent_id}}", "runs"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Get call history for specific agent"
+          }
+        },
+        {
+          "name": "Update Agent",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Agent Name\",\n  \"description\": \"Updated description\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/agents/{{agent_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "agents", "{{agent_id}}"]
+            },
+            "description": "Update agent details"
+          }
+        },
+        {
+          "name": "Delete Agent",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/agents/{{agent_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "agents", "{{agent_id}}"]
+            },
+            "description": "Delete an agent"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Web Calls",
+      "item": [
+        {
+          "name": "Start Web Call",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('run_id', jsonData.data.run_id);",
+                  "    console.log('✅ Run ID saved:', jsonData.data.run_id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"agent_id\": \"{{agent_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/calls/web/start",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "calls", "web", "start"]
+            },
+            "description": "Start a web call session"
+          }
+        },
+        {
+          "name": "Process Web Call Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"run_id\": \"{{run_id}}\",\n  \"message\": \"Hi, I'm interested in learning more about your product.\",\n  \"conversation_history\": []\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/calls/web/message",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "calls", "web", "message"]
+            },
+            "description": "Send message in web call (AI responds)"
+          }
+        },
+        {
+          "name": "End Web Call",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"run_id\": \"{{run_id}}\",\n  \"conversation_history\": [\n    {\"role\": \"user\", \"content\": \"Hi, I'm interested\"},\n    {\"role\": \"assistant\", \"content\": \"Great! Let me help you\"}\n  ],\n  \"duration_seconds\": 45,\n  \"disposition\": \"user_hangup\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/calls/web/end",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "calls", "web", "end"]
+            },
+            "description": "End web call and generate transcript"
+          }
+        },
+        {
+          "name": "Get Run Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/calls/run/{{run_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "calls", "run", "{{run_id}}"]
+            },
+            "description": "Get details of a specific run"
+          }
+        },
+        {
+          "name": "Get Transcript",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/calls/transcript/{{run_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "calls", "transcript", "{{run_id}}"]
+            },
+            "description": "Get transcript for a run"
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Phone Calls",
+      "item": [
+        {
+          "name": "Start Phone Call",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"agent_id\": \"{{agent_id}}\",\n  \"phone_number\": \"+15551234567\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/calls/phone/start",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "calls", "phone", "start"]
+            },
+            "description": "Start a phone call via Twilio (requires telephony config)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Configuration",
+      "item": [
+        {
+          "name": "Get Service Config",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/config/service",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "config", "service"]
+            },
+            "description": "Get LLM/TTS/STT configuration"
+          }
+        },
+        {
+          "name": "Save Service Config",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"llm_provider\": \"groq\",\n  \"llm_model\": \"llama-3.3-70b-versatile\",\n  \"tts_provider\": \"deepgram\",\n  \"tts_voice\": \"aura-2-helena-en\",\n  \"stt_provider\": \"deepgram\",\n  \"stt_model\": \"nova-3-general\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/config/service",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "config", "service"]
+            },
+            "description": "Save AI service configuration"
+          }
+        },
+        {
+          "name": "Get Telephony Config",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/config/telephony",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "config", "telephony"]
+            },
+            "description": "Get Twilio configuration"
+          }
+        },
+        {
+          "name": "Save Telephony Config",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"provider\": \"twilio\",\n  \"account_sid\": \"ACxxxxxxxxxxxxxxxxxx\",\n  \"auth_token\": \"your_twilio_auth_token\",\n  \"from_phone_number\": \"+15551234567\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/config/telephony",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "config", "telephony"]
+            },
+            "description": "Save Twilio credentials"
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Campaigns",
+      "item": [
+        {
+          "name": "Create Campaign (with CSV)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('campaign_id', jsonData.data.id);",
+                  "    console.log('✅ Campaign ID saved:', jsonData.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "Test Campaign",
+                  "type": "text",
+                  "description": "Campaign name"
+                },
+                {
+                  "key": "agent_id",
+                  "value": "{{agent_id}}",
+                  "type": "text",
+                  "description": "Agent to use for calls"
+                },
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": [],
+                  "description": "Upload contacts.csv file"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/campaigns",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "campaigns"]
+            },
+            "description": "Create campaign with CSV upload (phone_number, first_name, last_name)"
+          }
+        },
+        {
+          "name": "Get All Campaigns",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/campaigns",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "campaigns"]
+            },
+            "description": "List all campaigns"
+          }
+        },
+        {
+          "name": "Get Campaign by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/campaigns/{{campaign_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "campaigns", "{{campaign_id}}"]
+            },
+            "description": "Get campaign details with runs"
+          }
+        },
+        {
+          "name": "Start Campaign",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/campaigns/{{campaign_id}}/start",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "campaigns", "{{campaign_id}}", "start"]
+            },
+            "description": "Start campaign execution (calls all contacts)"
+          }
+        },
+        {
+          "name": "Pause Campaign",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/campaigns/{{campaign_id}}/pause",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "campaigns", "{{campaign_id}}", "pause"]
+            },
+            "description": "Pause running campaign"
+          }
+        },
+        {
+          "name": "Resume Campaign",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/campaigns/{{campaign_id}}/resume",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "campaigns", "{{campaign_id}}", "resume"]
+            },
+            "description": "Resume paused campaign"
+          }
+        },
+        {
+          "name": "Stop Campaign",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/campaigns/{{campaign_id}}/stop",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "campaigns", "{{campaign_id}}", "stop"]
+            },
+            "description": "Stop campaign completely"
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Usage",
+      "item": [
+        {
+          "name": "Get Usage Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/usage/dashboard",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "usage", "dashboard"]
+            },
+            "description": "Get usage stats for current billing period"
+          }
+        },
+        {
+          "name": "Get Usage History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/usage/history?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "usage", "history"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Get paginated usage history"
+          }
+        },
+        {
+          "name": "Get Usage History with Filters",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/usage/history?agent_id={{agent_id}}&disposition=user_hangup&min_duration=10&max_duration=60",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "usage", "history"],
+              "query": [
+                {
+                  "key": "agent_id",
+                  "value": "{{agent_id}}"
+                },
+                {
+                  "key": "disposition",
+                  "value": "user_hangup"
+                },
+                {
+                  "key": "min_duration",
+                  "value": "10"
+                },
+                {
+                  "key": "max_duration",
+                  "value": "60"
+                }
+              ]
+            },
+            "description": "Filter usage by agent, disposition, duration"
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Reports",
+      "item": [
+        {
+          "name": "Get Daily Reports",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/daily?date=2025-10-12",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "daily"],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "2025-10-12",
+                  "description": "Date in YYYY-MM-DD format"
+                },
+                {
+                  "key": "agent_id",
+                  "value": "{{agent_id}}",
+                  "disabled": true,
+                  "description": "Optional: filter by specific agent"
+                }
+              ]
+            },
+            "description": "Get daily report with metrics and charts"
+          }
+        },
+        {
+          "name": "Download Report CSV",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/download?date=2025-10-12",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "download"],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "2025-10-12"
+                }
+              ]
+            },
+            "description": "Download report as CSV file"
+          }
+        }
+      ]
+    }
+  ]
+}

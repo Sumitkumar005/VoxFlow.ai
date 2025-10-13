@@ -1,0 +1,9 @@
+{
+  "name": "voxflow",
+  "version": "1.0.0",
+  "description": "VoxFlow Voice AI Platform",
+  "private": true,
+  "dependencies": {
+    "multer": "^2.0.2"
+  }
+}
