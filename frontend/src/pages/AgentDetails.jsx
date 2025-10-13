@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { agentAPI } from '../utils/api';
 import { ArrowLeft, Phone, Globe, History } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { extractUserFriendlyDescription, getAgentTypeClasses, generateAgentSummary } from '../utils/agentUtils';
 
 const AgentDetails = () => {
   const { id } = useParams();
@@ -41,14 +42,22 @@ const AgentDetails = () => {
       <div className="card mb-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">{agent.name}</h1>
         <div className="flex items-center space-x-2 mb-4">
-          <span className={`px-3 py-1 rounded text-sm font-medium ${
-            agent.type === 'OUTBOUND' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
-          }`}>
+          <span className={`px-3 py-1 rounded text-sm font-medium ${getAgentTypeClasses(agent.type)}`}>
             {agent.type}
           </span>
           <span className="text-gray-600">{agent.use_case}</span>
         </div>
-        <p className="text-gray-700">{agent.description}</p>
+        <div className="space-y-3">
+          <p className="text-gray-700 text-lg">
+            {generateAgentSummary(agent)}
+          </p>
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h3 className="font-medium text-gray-900 mb-2">Agent Capabilities</h3>
+            <p className="text-gray-700 text-sm leading-relaxed">
+              {extractUserFriendlyDescription(agent.description)}
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

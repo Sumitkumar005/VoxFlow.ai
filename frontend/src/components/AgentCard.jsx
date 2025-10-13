@@ -1,5 +1,6 @@
 import { Eye, Trash2, Calendar, Activity } from 'lucide-react';
 import { formatDate } from '../utils/formatters';
+import { extractUserFriendlyDescription, getAgentTypeClasses } from '../utils/agentUtils';
 
 const AgentCard = ({ agent, onView, onDelete }) => {
   return (
@@ -8,11 +9,7 @@ const AgentCard = ({ agent, onView, onDelete }) => {
         <div className="flex-1">
           <h3 className="text-lg font-semibold text-gray-900">{agent.name}</h3>
           <div className="flex items-center space-x-2 mt-1">
-            <span className={`px-2 py-1 rounded text-xs font-medium ${
-              agent.type === 'OUTBOUND' 
-                ? 'bg-blue-100 text-blue-800' 
-                : 'bg-green-100 text-green-800'
-            }`}>
+            <span className={`px-2 py-1 rounded text-xs font-medium ${getAgentTypeClasses(agent.type)}`}>
               {agent.type}
             </span>
             <span className="text-sm text-gray-500">{agent.use_case}</span>
@@ -26,8 +23,13 @@ const AgentCard = ({ agent, onView, onDelete }) => {
         </button>
       </div>
 
-      <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-        {agent.description}
+      <p className="text-sm text-gray-600 mb-4" style={{
+        display: '-webkit-box',
+        WebkitLineClamp: 3,
+        WebkitBoxOrient: 'vertical',
+        overflow: 'hidden'
+      }}>
+        {extractUserFriendlyDescription(agent.description)}
       </p>
 
       <div className="flex items-center justify-between pt-4 border-t">

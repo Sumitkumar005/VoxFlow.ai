@@ -183,13 +183,19 @@ export class WebRTCCallSession extends EventEmitter {
    * Generate initial greeting
    */
   async generateGreeting() {
-    const greetingPrompt = `Generate a brief, friendly greeting for this ${this.agentConfig.type} call. Keep it under 2 sentences.`;
+    const agentName = this.agentConfig.name || 'Assistant';
+    const greetingPrompt = `Generate a brief, friendly greeting for this ${this.agentConfig.type} call. Include your name "${agentName}" in the greeting. Keep it under 2 sentences.`;
     
     const response = await generateResponse(
       this.agentConfig.description,
       [],
       greetingPrompt,
-      this.serviceConfig.llm_model
+      this.serviceConfig.llm_model,
+      {
+        name: this.agentConfig.name,
+        type: this.agentConfig.type,
+        use_case: this.agentConfig.use_case,
+      }
     );
 
     return response;

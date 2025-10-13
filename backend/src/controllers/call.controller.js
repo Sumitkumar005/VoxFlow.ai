@@ -100,12 +100,22 @@ export const processWebCallMessage = async (req, res, next) => {
 
     const llmModel = configs?.[0]?.llm_model || 'llama-3.3-70b-versatile';
 
-    // Generate AI response using Groq
+    // Generate AI response using enhanced voice AI prompting
     const aiResponse = await generateResponse(
       agent.description,
       conversation_history,
       message,
-      llmModel
+      llmModel,
+      {
+        name: agent.name,
+        type: agent.type,
+        use_case: agent.use_case,
+      },
+      {
+        // Add any additional context here
+        callType: 'web_call',
+        timestamp: new Date().toISOString(),
+      }
     );
 
     res.json({
@@ -126,6 +136,16 @@ export const processWebCallMessage = async (req, res, next) => {
 export const endWebCall = async (req, res, next) => {
   try {
     const { run_id, conversation_history, duration_seconds, disposition } = req.body;
+
+    console.log('Ending web call:', { run_id, duration_seconds, disposition, historyLength: conversation_history?.length });
+
+    // Validate required fields
+    if (!run_id) {
+      return res.status(400).json({
+        success: false,
+        message: 'Run ID is required',
+      });
+    }
 
     // Generate transcript from conversation history
     const transcript = conversation_history
@@ -378,7 +398,7 @@ export const handleTwilioWebhook = async (req, res, next) => {
     console.error('Twilio webhook error:', error);
     const twiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Say voice="Polly.Joanna">I'm sorry, there was an error. Please try again later.</Say>
+  <Say voice="Polly.Joanna">I apologize, but I'm experiencing technical difficulties. Please try calling again in a few minutes.</Say>
   <Hangup/>
 </Response>`;
     res.type('text/xml').send(twiml);
@@ -483,9 +503,9 @@ export const handleTwilioGather = async (req, res, next) => {
     console.error('Twilio gather error:', error);
     const twiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Say voice="Polly.Joanna">I'm sorry, I didn't catch that. Could you please repeat?</Say>
+  <Say voice="Polly.Joanna">I didn't catch that clearly. Could you please repeat what you said?</Say>
   <Gather input="speech" timeout="5" action="/api/calls/twilio/webhook/${req.params.runId}/gather">
-    <Say voice="Polly.Joanna">Please try again.</Say>
+    <Say voice="Polly.Joanna">Please speak clearly and try again.</Say>
   </Gather>
 </Response>`;
     res.type('text/xml').send(twiml);
