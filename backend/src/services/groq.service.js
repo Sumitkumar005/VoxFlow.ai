@@ -3,6 +3,43 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+/**
+ * Clean agent description to remove template contamination
+ */
+const cleanAgentDescription = (description, agentName, useCase) => {
+  if (!description) return '';
+  
+  let cleaned = description
+    // Remove template agent names
+    .replace(/Lead Qualification Agent/gi, agentName || 'I')
+    .replace(/Sales Agent/gi, agentName || 'I')
+    .replace(/Customer Support Agent/gi, agentName || 'I')
+    .replace(/Technical Support Agent/gi, agentName || 'I')
+    .replace(/Survey Agent/gi, agentName || 'I')
+    
+    // Remove generic company references
+    .replace(/TechSolutions/gi, 'our company')
+    .replace(/InnovateNow/gi, 'our company')
+    .replace(/CustomerInsights/gi, 'our company')
+    .replace(/B2B software solution/gi, 'our services')
+    .replace(/B2B software company/gi, 'our company')
+    
+    // Remove template greetings that mention wrong names
+    .replace(/My name is \[Agent Name\]/gi, `My name is ${agentName}`)
+    .replace(/This is \[Agent Name\]/gi, `This is ${agentName}`)
+    .replace(/I'm \[Agent Name\]/gi, `I'm ${agentName}`)
+    
+    // Remove placeholder company names
+    .replace(/\[Company Name\]/gi, 'our company')
+    .replace(/\[Agent Name\]/gi, agentName || 'I')
+    
+    // Ensure consistent identity
+    .replace(/You are a [^.]*agent/gi, `You are ${agentName}, a professional agent`)
+    .replace(/You're a [^.]*agent/gi, `You're ${agentName}, a professional agent`);
+  
+  return cleaned;
+};
+
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
@@ -16,12 +53,22 @@ const groq = new Groq({
  * @param {Object} context - Additional context (caller info, etc.)
  */
 const buildVoiceAIPrompt = (agentDescription, agentType, useCase, agentName, context = {}) => {
+  // Clean the agent description to remove template contamination
+  const cleanedDescription = cleanAgentDescription(agentDescription, agentName, useCase);
+  
   const prompt = `# Role & Objective
-You are a professional ${agentType.toLowerCase()} voice AI agent specialized in ${useCase}.
-${agentName ? `Your name is ${agentName}.` : ''}
+You are ${agentName || 'a professional voice AI agent'} specializing in ${useCase}.
+${agentName ? `Your name is ALWAYS ${agentName}. Never use any other name or identity.` : ''}
 Your task is to ${agentType === 'INBOUND' ? 'assist callers who contact you' : 'engage with people you call'} in a natural, helpful conversation.
 
-${agentDescription}
+# CRITICAL IDENTITY RULES
+- Your name is ${agentName || 'Assistant'} - NEVER change this
+- You work for the company mentioned in your description
+- NEVER refer to yourself as "Lead Qualification Agent" or any template names
+- NEVER mention other agent types or generic examples
+- Stay in character as ${agentName || 'yourself'} throughout the entire conversation
+
+${cleanedDescription}
 
 # Personality & Tone
 ## Personality
@@ -125,7 +172,14 @@ CRITICAL REMINDERS:
 - This is a VOICE conversation - sound natural and human
 - Never use formatting, bullet points, or lists in your spoken responses
 - Keep it conversational, brief, and focused
-- You're talking to a real person - be genuine and helpful`;
+- You're talking to a real person - be genuine and helpful
+
+IDENTITY ENFORCEMENT (NEVER FORGET):
+- Your name is ${agentName || 'Assistant'} - ALWAYS use this name
+- NEVER call yourself "Lead Qualification Agent" or any template names
+- NEVER switch identities or use different names during the conversation
+- If you mention your name, it must ALWAYS be ${agentName || 'Assistant'}
+- Stay consistent with your identity throughout the entire conversation`;
 
   return prompt;
 };
@@ -182,8 +236,9 @@ export const generateResponse = async (
 
     let response = completion.choices[0]?.message?.content || '';
 
-    // Post-process response for voice optimization
+    // Post-process response for voice optimization and identity enforcement
     response = optimizeForVoice(response);
+    response = enforceAgentIdentity(response, agentConfig.name);
 
     return {
       success: true,
@@ -295,6 +350,39 @@ const optimizeForVoice = (text) => {
   }
 
   return optimized;
+};
+
+/**
+ * Enforce agent identity in responses to prevent template contamination
+ * @param {String} response - AI response text
+ * @param {String} agentName - Correct agent name
+ * @returns {String} - Identity-corrected response
+ */
+const enforceAgentIdentity = (response, agentName) => {
+  if (!response || !agentName) return response;
+  
+  return response
+    // Fix wrong agent names
+    .replace(/Lead Qualification Agent/gi, agentName)
+    .replace(/Sales Agent/gi, agentName)
+    .replace(/Customer Support Agent/gi, agentName)
+    .replace(/Technical Support Agent/gi, agentName)
+    .replace(/Survey Agent/gi, agentName)
+    .replace(/Voice Agent/gi, agentName)
+    
+    // Fix wrong identity statements
+    .replace(/I'm Lead Qualification Agent/gi, `I'm ${agentName}`)
+    .replace(/My name is Lead Qualification Agent/gi, `My name is ${agentName}`)
+    .replace(/This is Lead Qualification Agent/gi, `This is ${agentName}`)
+    
+    // Fix generic company references when agent has specific company
+    .replace(/I'm calling from a B2B software company/gi, `I'm ${agentName} calling from our company`)
+    .replace(/I'm with a B2B software company/gi, `I'm ${agentName} with our company`)
+    
+    // Ensure consistent first-person references
+    .replace(/The agent will/gi, 'I will')
+    .replace(/The agent can/gi, 'I can')
+    .replace(/This agent/gi, 'I');
 };
 
 /**

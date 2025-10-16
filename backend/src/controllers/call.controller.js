@@ -158,18 +158,24 @@ export const endWebCall = async (req, res, next) => {
     // Calculate tokens
     const tokens = calculateTokens(duration_seconds);
 
-    // Update run
+    // Update run status to completed
+    const updateData = {
+      status: 'completed',
+      transcript_text: transcript,
+      duration_seconds: duration_seconds || 0,
+      dograh_tokens: tokens,
+      disposition: disposition || 'user_hangup',
+      completed_at: new Date().toISOString(),
+    };
+
+    console.log('Updating run with data:', updateData);
+
     const { data } = await query('agent_runs', 'update', {
       filter: { id: run_id },
-      data: {
-        status: 'completed',
-        transcript_text: transcript,
-        duration_seconds,
-        dograh_tokens: tokens,
-        disposition: disposition || 'user_hangup',
-        completed_at: new Date().toISOString(),
-      },
+      data: updateData,
     });
+
+    console.log('Run updated successfully:', data);
 
     // Generate a dummy recording URL (in production, this would be actual audio)
     const recordingUrl = `/uploads/recordings/${run_id}.mp3`;
@@ -520,7 +526,7 @@ export const handleTwilioStatus = async (req, res, next) => {
     const { runId } = req.params;
     const { CallStatus, CallDuration } = req.body;
 
-    console.log(`Call status update for run ${runId}: ${CallStatus}`);
+    console.log(`Call status update for run ${runId}: ${CallStatus}`, req.body);
 
     // Update run status based on Twilio status
     let status = 'in_progress';
@@ -544,7 +550,7 @@ export const handleTwilioStatus = async (req, res, next) => {
         status = 'in_progress';
     }
 
-    await query('agent_runs', 'update', {
+    const updateResult = await query('agent_runs', 'update', {
       filter: { id: runId },
       data: {
         status,
@@ -552,6 +558,8 @@ export const handleTwilioStatus = async (req, res, next) => {
         completed_at: completedAt,
       },
     });
+
+    console.log(`Status updated for run ${runId}:`, { status, duration: CallDuration, updateResult });
 
     res.sendStatus(200);
   } catch (error) {
@@ -583,5 +591,35 @@ export const handleTwilioRecording = async (req, res, next) => {
   } catch (error) {
     console.error('Twilio recording update error:', error);
     res.sendStatus(500);
+  }
+};
+
+/**
+ * Manual fix for stuck calls (admin endpoint)
+ */
+export const fixStuckCall = async (req, res, next) => {
+  try {
+    const { runId } = req.params;
+    const { status = 'completed', disposition = 'manual_fix' } = req.body;
+
+    console.log(`Manually fixing stuck call ${runId} to status: ${status}`);
+
+    const updateResult = await query('agent_runs', 'update', {
+      filter: { id: runId },
+      data: {
+        status,
+        disposition,
+        completed_at: new Date().toISOString(),
+      },
+    });
+
+    res.json({
+      success: true,
+      message: `Call ${runId} status updated to ${status}`,
+      data: updateResult,
+    });
+  } catch (error) {
+    console.error('Fix stuck call error:', error);
+    next(error);
   }
 };

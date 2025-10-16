@@ -17,6 +17,22 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
   },
 });
 
+// Helper function to validate UUID values
+const validateUUIDs = (filter) => {
+  if (!filter) return filter;
+  
+  const validatedFilter = {};
+  Object.entries(filter).forEach(([key, value]) => {
+    if (value === null || value === undefined || value === 'null') {
+      console.warn(`Warning: Null UUID value detected for field '${key}', skipping filter`);
+      return; // Skip null values
+    }
+    validatedFilter[key] = value;
+  });
+  
+  return validatedFilter;
+};
+
 // Helper function to execute queries with error handling
 export const query = async (tableName, operation, options = {}) => {
   try {
@@ -26,7 +42,8 @@ export const query = async (tableName, operation, options = {}) => {
       case 'select':
         queryBuilder = queryBuilder.select(options.columns || '*');
         if (options.filter) {
-          Object.entries(options.filter).forEach(([key, value]) => {
+          const validatedFilter = validateUUIDs(options.filter);
+          Object.entries(validatedFilter).forEach(([key, value]) => {
             queryBuilder = queryBuilder.eq(key, value);
           });
         }
@@ -53,7 +70,8 @@ export const query = async (tableName, operation, options = {}) => {
       case 'update':
         queryBuilder = queryBuilder.update(options.data);
         if (options.filter) {
-          Object.entries(options.filter).forEach(([key, value]) => {
+          const validatedFilter = validateUUIDs(options.filter);
+          Object.entries(validatedFilter).forEach(([key, value]) => {
             queryBuilder = queryBuilder.eq(key, value);
           });
         }
@@ -63,7 +81,8 @@ export const query = async (tableName, operation, options = {}) => {
       case 'delete':
         queryBuilder = queryBuilder.delete();
         if (options.filter) {
-          Object.entries(options.filter).forEach(([key, value]) => {
+          const validatedFilter = validateUUIDs(options.filter);
+          Object.entries(validatedFilter).forEach(([key, value]) => {
             queryBuilder = queryBuilder.eq(key, value);
           });
         }

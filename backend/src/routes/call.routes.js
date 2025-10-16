@@ -10,6 +10,7 @@ import {
   handleTwilioGather,
   handleTwilioStatus,
   handleTwilioRecording,
+  fixStuckCall,
 } from '../controllers/call.controller.js';
 import { authenticate } from '../middleware/auth.middleware.js';
 
@@ -59,6 +60,13 @@ router.get('/run/:id', getRunById);
  * @access  Private
  */
 router.get('/transcript/:id', getTranscript);
+
+/**
+ * @route   POST /api/calls/fix/:runId
+ * @desc    Manually fix stuck call status
+ * @access  Private
+ */
+router.post('/fix/:runId', fixStuckCall);
 
 // Public webhook routes (no authentication required)
 const webhookRouter = express.Router();

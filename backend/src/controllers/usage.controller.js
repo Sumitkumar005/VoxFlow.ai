@@ -90,7 +90,7 @@ export const getUsageHistory = async (req, res, next) => {
       columns: 'id',
     });
 
-    const agentIds = agents?.map(a => a.id) || [];
+    const agentIds = agents?.map(a => a.id).filter(id => id !== null && id !== undefined) || [];
 
     if (agentIds.length === 0) {
       return res.json({
