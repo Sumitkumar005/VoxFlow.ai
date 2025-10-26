@@ -17,7 +17,7 @@ A comprehensive AI-powered voice calling platform for automated customer interac
 - **Backend**: Node.js, Express.js
 - **Database**: Supabase
 - **AI Services**: Groq, Deepgram
-- **Telephony**: Twilio
+- **Telephony**: Twilio/
 
 ## Getting Started
 
