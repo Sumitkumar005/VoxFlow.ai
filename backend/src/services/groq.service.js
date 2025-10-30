@@ -1,5 +1,9 @@
 import Groq from 'groq-sdk';
 import dotenv from 'dotenv';
+import { getUserAPIKey } from './user-keys.service.js';
+import { trackUsage } from './usage-tracking.service.js';
+import { checkAPICallLimit } from './limit-enforcement.service.js';
+import { APIKeyFallbackService } from './api-key-fallback.service.js';
 
 dotenv.config();
 
@@ -40,9 +44,7 @@ const cleanAgentDescription = (description, agentName, useCase) => {
   return cleaned;
 };
 
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
+// Remove global Groq instance - we'll create per-user instances
 
 /**
  * Enhanced Voice AI prompt builder following OpenAI's official prompting guide
@@ -185,7 +187,8 @@ IDENTITY ENFORCEMENT (NEVER FORGET):
 };
 
 /**
- * Generate AI response using Groq with enhanced voice AI prompting
+ * Generate AI response using Groq with enhanced voice AI prompting and user-specific API keys
+ * @param {String} userId - User ID for API key and usage tracking
  * @param {String} agentDescription - Agent's description from user
  * @param {Array} conversationHistory - Previous messages
  * @param {String} userMessage - Current user message
@@ -194,6 +197,7 @@ IDENTITY ENFORCEMENT (NEVER FORGET):
  * @param {Object} context - Additional context
  */
 export const generateResponse = async (
+  userId,
   agentDescription,
   conversationHistory = [],
   userMessage,
@@ -202,6 +206,50 @@ export const generateResponse = async (
   context = {}
 ) => {
   try {
+    // Estimate token usage for limit checking
+    const estimatedTokens = estimateTokenUsage(userMessage, conversationHistory);
+    
+    // Check if user can make this API call
+    const limitCheck = await checkAPICallLimit(userId, { 
+      provider: 'groq',
+      tokens: estimatedTokens 
+    });
+
+    if (!limitCheck.allowed) {
+      const agentName = agentConfig.name || 'I';
+      return {
+        success: false,
+        error: 'Usage limit exceeded',
+        message: `${agentName === 'I' ? 'I' : agentName} can't process that right now. ${limitCheck.reason}`,
+        limit_info: limitCheck.details,
+      };
+    }
+
+    // Get user's Groq API key with fallback support
+    let userGroqKey;
+    let usingFallback = false;
+    try {
+      userGroqKey = await APIKeyFallbackService.getAPIKeyWithFallback(userId, 'groq');
+      usingFallback = !(await APIKeyFallbackService.hasUserAPIKey(userId, 'groq'));
+      
+      // Log fallback usage for migration tracking
+      await APIKeyFallbackService.logAPIKeyUsage(userId, 'groq', usingFallback);
+    } catch (keyError) {
+      const agentName = agentConfig.name || 'I';
+      return {
+        success: false,
+        error: 'API key not configured',
+        message: `${agentName === 'I' ? 'I' : agentName} need you to configure your Groq API key in Settings first.`,
+        setup_required: true,
+        fallback_available: APIKeyFallbackService.hasEnvironmentFallback('groq'),
+      };
+    }
+
+    // Create Groq client with user's API key
+    const groq = new Groq({
+      apiKey: userGroqKey,
+    });
+
     // Build enhanced voice AI prompt
     const enhancedPrompt = buildVoiceAIPrompt(
       agentDescription,
@@ -240,16 +288,50 @@ export const generateResponse = async (
     response = optimizeForVoice(response);
     response = enforceAgentIdentity(response, agentConfig.name);
 
+    // Track usage asynchronously (don't wait for it)
+    setImmediate(async () => {
+      try {
+        await trackUsage(userId, {
+          provider: 'groq',
+          tokens: completion.usage?.total_tokens || estimatedTokens,
+          calls: 1,
+        });
+      } catch (trackingError) {
+        console.error('Failed to track Groq usage:', trackingError.message);
+      }
+    });
+
     return {
       success: true,
       message: response,
       usage: completion.usage,
+      tokens_used: completion.usage?.total_tokens || estimatedTokens,
+      using_fallback: usingFallback,
     };
   } catch (error) {
     console.error('Groq API error:', error);
     
     // Generate agent-aware error message
     const agentName = agentConfig.name || 'I';
+    
+    // Handle specific API errors
+    if (error.message?.includes('401') || error.message?.includes('unauthorized')) {
+      return {
+        success: false,
+        error: 'Invalid API key',
+        message: `${agentName === 'I' ? 'I' : agentName} can't connect right now. Please check your Groq API key in Settings.`,
+        setup_required: true,
+      };
+    }
+
+    if (error.message?.includes('429') || error.message?.includes('rate limit')) {
+      return {
+        success: false,
+        error: 'Rate limit exceeded',
+        message: `${agentName === 'I' ? 'I' : agentName} need to slow down a bit. Please try again in a moment.`,
+      };
+    }
+
     const errorMessages = [
       `Sorry, ${agentName === 'I' ? 'I' : agentName} didn't catch that clearly. Could you repeat it?`,
       `${agentName === 'I' ? 'I' : agentName} had trouble processing that. Can you say it again?`,
@@ -386,15 +468,29 @@ const enforceAgentIdentity = (response, agentName) => {
 };
 
 /**
- * Stream AI response (for real-time conversation)
+ * Stream AI response (for real-time conversation) with user-specific API keys
+ * @param {String} userId - User ID for API key and usage tracking
+ * @param {String} systemPrompt - System prompt
+ * @param {Array} conversationHistory - Previous messages
+ * @param {String} userMessage - Current user message
+ * @param {String} model - Groq model to use
  */
 export const streamResponse = async (
+  userId,
   systemPrompt,
   conversationHistory,
   userMessage,
   model = 'llama-3.3-70b-versatile'
 ) => {
   try {
+    // Get user's Groq API key with fallback support
+    const userGroqKey = await APIKeyFallbackService.getAPIKeyWithFallback(userId, 'groq');
+
+    // Create Groq client with user's API key
+    const groq = new Groq({
+      apiKey: userGroqKey,
+    });
+
     const messages = [
       {
         role: 'system',
@@ -420,4 +516,26 @@ export const streamResponse = async (
     console.error('Groq streaming error:', error);
     throw error;
   }
+};
+
+/**
+ * Estimate token usage for a request (rough estimation)
+ * @param {String} userMessage - User's message
+ * @param {Array} conversationHistory - Previous messages
+ * @returns {Number} Estimated token count
+ */
+const estimateTokenUsage = (userMessage, conversationHistory = []) => {
+  // Rough estimation: ~4 characters per token
+  const userTokens = Math.ceil(userMessage.length / 4);
+  const historyTokens = conversationHistory.reduce((acc, msg) => {
+    return acc + Math.ceil((msg.content || '').length / 4);
+  }, 0);
+  
+  // Add system prompt estimation (roughly 500 tokens)
+  const systemTokens = 500;
+  
+  // Add response estimation (roughly 100 tokens)
+  const responseTokens = 100;
+  
+  return userTokens + historyTokens + systemTokens + responseTokens;
 };

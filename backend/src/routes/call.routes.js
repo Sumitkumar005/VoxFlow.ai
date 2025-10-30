@@ -13,6 +13,12 @@ import {
   fixStuckCall,
 } from '../controllers/call.controller.js';
 import { authenticate } from '../middleware/auth.middleware.js';
+import { 
+  checkAgentOwnership, 
+  checkAgentRunOwnership, 
+  logAdminAction 
+} from '../middleware/rbac.middleware.js';
+import { concurrentCallLimiter } from '../middleware/rateLimiting.middleware.js';
 
 const router = express.Router();
 
@@ -21,52 +27,52 @@ router.use(authenticate);
 
 /**
  * @route   POST /api/calls/web/start
- * @desc    Start a web call session
+ * @desc    Start a web call session (agent ownership verified in controller)
  * @access  Private
  */
-router.post('/web/start', startWebCall);
+router.post('/web/start', concurrentCallLimiter, logAdminAction('start_web_call'), startWebCall);
 
 /**
  * @route   POST /api/calls/web/message
- * @desc    Process a message in web call (AI turn)
+ * @desc    Process a message in web call (run ownership verified in controller)
  * @access  Private
  */
 router.post('/web/message', processWebCallMessage);
 
 /**
  * @route   POST /api/calls/web/end
- * @desc    End web call and generate transcript
+ * @desc    End web call and generate transcript (run ownership verified in controller)
  * @access  Private
  */
-router.post('/web/end', endWebCall);
+router.post('/web/end', logAdminAction('end_web_call'), endWebCall);
 
 /**
  * @route   POST /api/calls/phone/start
- * @desc    Start a phone call via Twilio
+ * @desc    Start a phone call via Twilio (agent ownership verified in controller)
  * @access  Private
  */
-router.post('/phone/start', startPhoneCall);
+router.post('/phone/start', concurrentCallLimiter, logAdminAction('start_phone_call'), startPhoneCall);
 
 /**
  * @route   GET /api/calls/run/:id
- * @desc    Get run details by ID
+ * @desc    Get run details by ID (ownership protected)
  * @access  Private
  */
-router.get('/run/:id', getRunById);
+router.get('/run/:id', checkAgentRunOwnership, getRunById);
 
 /**
  * @route   GET /api/calls/transcript/:id
- * @desc    Get transcript for a run
+ * @desc    Get transcript for a run (ownership protected)
  * @access  Private
  */
-router.get('/transcript/:id', getTranscript);
+router.get('/transcript/:id', checkAgentRunOwnership, getTranscript);
 
 /**
  * @route   POST /api/calls/fix/:runId
- * @desc    Manually fix stuck call status
+ * @desc    Manually fix stuck call status (ownership protected)
  * @access  Private
  */
-router.post('/fix/:runId', fixStuckCall);
+router.post('/fix/:runId', checkAgentRunOwnership, logAdminAction('fix_stuck_call'), fixStuckCall);
 
 // Public webhook routes (no authentication required)
 const webhookRouter = express.Router();

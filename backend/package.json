@@ -7,7 +7,10 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "worker": "node src/jobs/campaign.worker.js"
+    "worker": "node src/jobs/campaign.worker.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "keywords": [
     "voice-ai",
@@ -20,6 +23,7 @@
   "license": "MIT",
   "dependencies": {
     "@deepgram/sdk": "^3.3.0",
+    "@elevenlabs/elevenlabs-js": "^2.20.1",
     "@supabase/supabase-js": "^2.39.0",
     "axios": "^1.6.5",
     "bcryptjs": "^2.4.3",
@@ -28,15 +32,25 @@
     "csv-parser": "^3.0.0",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
+    "express-rate-limit": "^7.1.5",
     "express-validator": "^7.0.1",
     "groq-sdk": "^0.3.0",
+    "helmet": "^7.1.0",
+    "ioredis": "^5.3.2",
+    "isomorphic-dompurify": "^2.6.0",
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
+    "rate-limit-redis": "^4.2.0",
     "socket.io": "^4.6.1",
     "twilio": "^4.20.0",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "validator": "^13.11.0",
+    "winston": "^3.18.3"
   },
   "devDependencies": {
-    "nodemon": "^3.0.3"
+    "@jest/globals": "^29.7.0",
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.3",
+    "supertest": "^6.3.3"
   }
 }

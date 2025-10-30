@@ -1,7 +1,7 @@
 import { verifyToken, extractToken } from '../utils/jwt.js';
 
 /**
- * Middleware to authenticate requests using JWT
+ * Middleware to authenticate requests using JWT with enhanced user data
  */
 export const authenticate = (req, res, next) => {
   try {
@@ -16,10 +16,13 @@ export const authenticate = (req, res, next) => {
 
     const decoded = verifyToken(token);
     
-    // Attach user info to request object
+    // Attach enhanced user info to request object
     req.user = {
       id: decoded.id,
       email: decoded.email,
+      role: decoded.role || 'user',
+      subscription_tier: decoded.subscription_tier || 'free',
+      max_agents: decoded.max_agents || 2,
     };
 
     next();
@@ -45,6 +48,9 @@ export const optionalAuth = (req, res, next) => {
       req.user = {
         id: decoded.id,
         email: decoded.email,
+        role: decoded.role || 'user',
+        subscription_tier: decoded.subscription_tier || 'free',
+        max_agents: decoded.max_agents || 2,
       };
     }
 

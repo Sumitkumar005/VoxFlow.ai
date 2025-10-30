@@ -39,15 +39,22 @@ export const getUsageDashboard = async (req, res, next) => {
       .in('agent_id', agentIds)
       .gte('created_at', periodStart)
       .lte('created_at', periodEnd)
-      .eq('status', 'completed');
+      .in('status', ['completed', 'user_hangup', 'ended']);
 
-    const totalTokens = runs?.reduce((sum, run) => sum + (parseFloat(run.dograh_tokens) || 0), 0) || 0;
+    const totalTokens = runs?.reduce((sum, run) => sum + (parseFloat(run.groq_tokens) || 0), 0) || 0;
     const totalDuration = runs?.reduce((sum, run) => sum + (run.duration_seconds || 0), 0) || 0;
     const totalRuns = runs?.length || 0;
 
     // Format total duration as minutes and seconds
     const minutes = Math.floor(totalDuration / 60);
     const seconds = totalDuration % 60;
+
+    // Get user quota from user object
+    const tokenQuota = req.user.monthly_token_quota || 1000;
+    const agentLimit = req.user.max_agents || 2;
+    
+    // Calculate usage percentage
+    const tokenPercentage = tokenQuota > 0 ? Math.min(Math.round((totalTokens / tokenQuota) * 100), 100) : 0;
 
     res.json({
       success: true,
@@ -58,8 +65,14 @@ export const getUsageDashboard = async (req, res, next) => {
         total_runs: totalRuns,
         period_start: periodStart,
         period_end: periodEnd,
-        quota: 0, // Can be set from user settings
-        percentage_used: 0,
+        quota: tokenQuota,
+        percentage_used: tokenPercentage,
+        current_usage: {
+          tokens_this_month: parseFloat(totalTokens.toFixed(2)),
+          agents: agentIds.length,
+          calls_this_month: totalRuns,
+          costs_this_month: 0.00
+        }
       },
     });
   } catch (error) {
@@ -105,7 +118,7 @@ export const getUsageHistory = async (req, res, next) => {
       .from('agent_runs')
       .select('*, agents(name, type)', { count: 'exact' })
       .in('agent_id', agentIds)
-      .eq('status', 'completed');
+      .in('status', ['completed', 'user_hangup', 'ended']);
 
     // Apply filters
     if (agent_id) queryBuilder = queryBuilder.eq('agent_id', agent_id);

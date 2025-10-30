@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { configAPI } from '../utils/api';
-import { ArrowLeft, Loader2, Phone } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import SettingsLayout from '../components/SettingsLayout';
 
 const TelephonyConfig = () => {
   const navigate = useNavigate();
@@ -54,23 +55,11 @@ const TelephonyConfig = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-6"
-      >
-        <ArrowLeft size={20} />
-        <span>Back</span>
-      </button>
-
-      <div className="card">
-        <div className="flex items-center space-x-3 mb-6">
-          <Phone className="h-8 w-8 text-blue-600" />
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Configure Telephony</h1>
-            <p className="text-gray-600">Set up your Twilio credentials for phone calls</p>
-          </div>
-        </div>
+    <SettingsLayout>
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Telephony Configuration</h2>
+        <p className="text-gray-600">Set up your Twilio credentials for phone calls</p>
+      </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
@@ -133,16 +122,9 @@ const TelephonyConfig = () => {
 
           <div className="flex space-x-3">
             <button
-              type="button"
-              onClick={() => navigate(-1)}
-              className="btn-secondary flex-1"
-            >
-              Cancel
-            </button>
-            <button
               type="submit"
               disabled={saving}
-              className="btn-primary flex-1 flex items-center justify-center"
+              className="w-full btn-primary flex items-center justify-center"
             >
               {saving ? (
                 <>
@@ -155,8 +137,7 @@ const TelephonyConfig = () => {
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </SettingsLayout>
   );
 };
 

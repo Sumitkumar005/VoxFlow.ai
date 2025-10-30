@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { configAPI } from '../utils/api';
-import { Settings, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
+import SettingsLayout from '../components/SettingsLayout';
 
 const ServiceConfig = () => {
   const [loading, setLoading] = useState(true);
@@ -50,13 +51,10 @@ const ServiceConfig = () => {
   if (loading) return <LoadingSpinner />;
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="flex items-center space-x-3 mb-8">
-        <Settings className="h-8 w-8 text-blue-600" />
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Service Configuration</h1>
-          <p className="text-gray-600">Configure your AI service providers</p>
-        </div>
+    <SettingsLayout>
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Service Configuration</h2>
+        <p className="text-gray-600 mb-6">Configure your AI service providers and models</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -184,7 +182,7 @@ const ServiceConfig = () => {
           )}
         </button>
       </form>
-    </div>
+    </SettingsLayout>
   );
 };
 

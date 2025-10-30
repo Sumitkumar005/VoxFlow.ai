@@ -12,12 +12,12 @@ export const AuthProvider = ({ children }) => {
     // Check if user is already logged in
     const storedUser = localStorage.getItem('voxflow_user');
     const storedToken = localStorage.getItem('voxflow_token');
-    
+
     if (storedUser && storedToken) {
       setUser(JSON.parse(storedUser));
       setToken(storedToken);
     }
-    
+
     setLoading(false);
   }, []);
 
@@ -25,20 +25,42 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await authAPI.login({ email, password });
       const { token: newToken, user: newUser } = response.data.data;
-      
+
       // Store in localStorage
       localStorage.setItem('voxflow_token', newToken);
       localStorage.setItem('voxflow_user', JSON.stringify(newUser));
-      
+
       setToken(newToken);
       setUser(newUser);
-      
+
       return { success: true };
     } catch (error) {
       console.error('Login error:', error);
       return {
         success: false,
         message: error.response?.data?.message || 'Login failed',
+      };
+    }
+  };
+
+  const register = async (userData) => {
+    try {
+      const response = await authAPI.register(userData);
+      const { token: newToken, user: newUser } = response.data.data;
+
+      // Store in localStorage
+      localStorage.setItem('voxflow_token', newToken);
+      localStorage.setItem('voxflow_user', JSON.stringify(newUser));
+
+      setToken(newToken);
+      setUser(newUser);
+
+      return { success: true };
+    } catch (error) {
+      console.error('Registration error:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Registration failed',
       };
     }
   };
@@ -56,6 +78,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     isAuthenticated: !!token,
     login,
+    register,
     logout,
   };
 

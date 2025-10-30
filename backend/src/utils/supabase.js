@@ -44,7 +44,18 @@ export const query = async (tableName, operation, options = {}) => {
         if (options.filter) {
           const validatedFilter = validateUUIDs(options.filter);
           Object.entries(validatedFilter).forEach(([key, value]) => {
-            queryBuilder = queryBuilder.eq(key, value);
+            // Handle different comparison operators
+            if (typeof value === 'string' && value.startsWith('gte.')) {
+              queryBuilder = queryBuilder.gte(key, value.substring(4));
+            } else if (typeof value === 'string' && value.startsWith('lte.')) {
+              queryBuilder = queryBuilder.lte(key, value.substring(4));
+            } else if (typeof value === 'string' && value.startsWith('gt.')) {
+              queryBuilder = queryBuilder.gt(key, value.substring(3));
+            } else if (typeof value === 'string' && value.startsWith('lt.')) {
+              queryBuilder = queryBuilder.lt(key, value.substring(3));
+            } else {
+              queryBuilder = queryBuilder.eq(key, value);
+            }
           });
         }
         if (options.order) {
@@ -86,6 +97,13 @@ export const query = async (tableName, operation, options = {}) => {
             queryBuilder = queryBuilder.eq(key, value);
           });
         }
+        break;
+
+      case 'upsert':
+        queryBuilder = queryBuilder.upsert(options.data, {
+          onConflict: options.onConflict || undefined,
+          ignoreDuplicates: options.ignoreDuplicates || false,
+        }).select();
         break;
 
       default:

@@ -94,7 +94,16 @@ const Login = () => {
             </button>
           </form>
 
-          <div className="mt-6 text-center text-sm text-gray-500">
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
+              Don't have an account?{' '}
+              <a href="/register" className="text-blue-600 hover:text-blue-700 font-medium">
+                Sign up here
+              </a>
+            </p>
+          </div>
+
+          <div className="mt-4 text-center text-sm text-gray-500">
             <p>Demo Credentials:</p>
             <p className="font-mono mt-1">admin@voxflow.com / admin123</p>
           </div>

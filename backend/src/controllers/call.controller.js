@@ -8,21 +8,22 @@ import fs from 'fs';
 import path from 'path';
 
 /**
- * Start a web call (simulated AI conversation)
+ * Start a web call (simulated AI conversation) with ownership validation
  */
 export const startWebCall = async (req, res, next) => {
   try {
     const { agent_id } = req.body;
+    const userId = req.user.id;
 
-    // Get agent details
+    // Validate agent ownership
     const { data: agents } = await query('agents', 'select', {
-      filter: { id: agent_id, user_id: req.user.id },
+      filter: { id: agent_id, user_id: userId },
     });
 
     if (!agents || agents.length === 0) {
       return res.status(404).json({
         success: false,
-        message: 'Agent not found',
+        message: 'Agent not found or access denied',
       });
     }
 
@@ -66,15 +67,17 @@ export const startWebCall = async (req, res, next) => {
 };
 
 /**
- * Process web call message (AI conversation turn)
+ * Process web call message (AI conversation turn) with ownership validation
  */
 export const processWebCallMessage = async (req, res, next) => {
   try {
     const { run_id, message, conversation_history = [] } = req.body;
+    const userId = req.user.id;
 
-    // Get run details
+    // Get run details with agent ownership validation
     const { data: runs } = await query('agent_runs', 'select', {
       filter: { id: run_id },
+      columns: 'id, agent_id, status',
     });
 
     if (!runs || runs.length === 0) {
@@ -86,10 +89,17 @@ export const processWebCallMessage = async (req, res, next) => {
 
     const run = runs[0];
 
-    // Get agent
+    // Validate agent ownership through the run's agent
     const { data: agents } = await query('agents', 'select', {
-      filter: { id: run.agent_id },
+      filter: { id: run.agent_id, user_id: userId },
     });
+
+    if (!agents || agents.length === 0) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. You can only access your own agent runs.',
+      });
+    }
 
     const agent = agents[0];
 
@@ -100,8 +110,9 @@ export const processWebCallMessage = async (req, res, next) => {
 
     const llmModel = configs?.[0]?.llm_model || 'llama-3.3-70b-versatile';
 
-    // Generate AI response using enhanced voice AI prompting
+    // Generate AI response using enhanced voice AI prompting with user-specific API keys
     const aiResponse = await generateResponse(
+      userId, // Pass user ID for API key and usage tracking
       agent.description,
       conversation_history,
       message,
@@ -131,11 +142,12 @@ export const processWebCallMessage = async (req, res, next) => {
 };
 
 /**
- * End web call and generate transcript/recording
+ * End web call and generate transcript/recording with ownership validation
  */
 export const endWebCall = async (req, res, next) => {
   try {
     const { run_id, conversation_history, duration_seconds, disposition } = req.body;
+    const userId = req.user.id;
 
     console.log('Ending web call:', { run_id, duration_seconds, disposition, historyLength: conversation_history?.length });
 
@@ -144,6 +156,34 @@ export const endWebCall = async (req, res, next) => {
       return res.status(400).json({
         success: false,
         message: 'Run ID is required',
+      });
+    }
+
+    // Validate run ownership through agent ownership
+    const { data: runData } = await query('agent_runs', 'select', {
+      filter: { id: run_id },
+      columns: 'id, agent_id, status',
+    });
+
+    if (!runData || runData.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Run not found',
+      });
+    }
+
+    const run = runData[0];
+
+    // Validate agent ownership
+    const { data: agents } = await query('agents', 'select', {
+      filter: { id: run.agent_id, user_id: userId },
+      columns: 'id',
+    });
+
+    if (!agents || agents.length === 0) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. You can only access your own agent runs.',
       });
     }
 
@@ -163,7 +203,7 @@ export const endWebCall = async (req, res, next) => {
       status: 'completed',
       transcript_text: transcript,
       duration_seconds: duration_seconds || 0,
-      dograh_tokens: tokens,
+      groq_tokens: tokens,
       disposition: disposition || 'user_hangup',
       completed_at: new Date().toISOString(),
     };
@@ -180,6 +220,11 @@ export const endWebCall = async (req, res, next) => {
     // Generate a dummy recording URL (in production, this would be actual audio)
     const recordingUrl = `/uploads/recordings/${run_id}.mp3`;
 
+    // Clean up concurrent call counter
+    if (req.decrementConcurrentCalls) {
+      await req.decrementConcurrentCalls();
+    }
+
     res.json({
       success: true,
       message: 'Call ended successfully',
@@ -190,16 +235,21 @@ export const endWebCall = async (req, res, next) => {
       },
     });
   } catch (error) {
+    // Clean up concurrent call counter on error
+    if (req.decrementConcurrentCalls) {
+      await req.decrementConcurrentCalls();
+    }
     next(error);
   }
 };
 
 /**
- * Start a phone call via Twilio
+ * Start a phone call via Twilio with ownership validation
  */
 export const startPhoneCall = async (req, res, next) => {
   try {
     const { agent_id, phone_number } = req.body;
+    const userId = req.user.id;
 
     if (!phone_number) {
       return res.status(400).json({
@@ -208,15 +258,15 @@ export const startPhoneCall = async (req, res, next) => {
       });
     }
 
-    // Get agent
+    // Validate agent ownership
     const { data: agents } = await query('agents', 'select', {
-      filter: { id: agent_id, user_id: req.user.id },
+      filter: { id: agent_id, user_id: userId },
     });
 
     if (!agents || agents.length === 0) {
       return res.status(404).json({
         success: false,
-        message: 'Agent not found',
+        message: 'Agent not found or access denied',
       });
     }
 
@@ -248,15 +298,13 @@ export const startPhoneCall = async (req, res, next) => {
 
     const run = runs[0];
 
-    // Make Twilio call
+    // Make Twilio call with user-specific API keys
     const webhookUrl = `${process.env.SERVER_URL || 'http://localhost:5000'}/api/calls/twilio/webhook/${run.id}`;
     
-    const callResult = await makeCall({
+    const callResult = await makeCall(userId, {
       to: phone_number,
-      from: config.from_phone_number,
-      accountSid: config.account_sid,
-      authToken: config.auth_token,
       webhookUrl,
+      estimatedDuration: 120, // 2 minutes default estimation
     });
 
     if (!callResult.success) {
@@ -288,12 +336,14 @@ export const startPhoneCall = async (req, res, next) => {
 };
 
 /**
- * Get run details by ID
+ * Get run details by ID with ownership validation
  */
 export const getRunById = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const userId = req.user.id;
 
+    // Get run with agent ownership validation
     const { data } = await query('agent_runs', 'select', {
       filter: { id },
     });
@@ -305,16 +355,25 @@ export const getRunById = async (req, res, next) => {
       });
     }
 
-    // Get agent details
+    const run = data[0];
+
+    // Validate agent ownership
     const { data: agents } = await query('agents', 'select', {
-      filter: { id: data[0].agent_id },
+      filter: { id: run.agent_id, user_id: userId },
     });
+
+    if (!agents || agents.length === 0) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. You can only access your own agent runs.',
+      });
+    }
 
     res.json({
       success: true,
       data: {
-        ...data[0],
-        agent: agents?.[0],
+        ...run,
+        agent: agents[0],
       },
     });
   } catch (error) {
@@ -323,15 +382,17 @@ export const getRunById = async (req, res, next) => {
 };
 
 /**
- * Get transcript for a run
+ * Get transcript for a run with ownership validation
  */
 export const getTranscript = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const userId = req.user.id;
 
+    // Get run details
     const { data } = await query('agent_runs', 'select', {
       filter: { id },
-      columns: 'id, run_number, transcript_text, created_at',
+      columns: 'id, agent_id, run_number, transcript_text, created_at',
     });
 
     if (!data || data.length === 0) {
@@ -341,9 +402,29 @@ export const getTranscript = async (req, res, next) => {
       });
     }
 
+    const run = data[0];
+
+    // Validate agent ownership
+    const { data: agents } = await query('agents', 'select', {
+      filter: { id: run.agent_id, user_id: userId },
+      columns: 'id',
+    });
+
+    if (!agents || agents.length === 0) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. You can only access your own agent runs.',
+      });
+    }
+
     res.json({
       success: true,
-      data: data[0],
+      data: {
+        id: run.id,
+        run_number: run.run_number,
+        transcript_text: run.transcript_text,
+        created_at: run.created_at,
+      },
     });
   } catch (error) {
     next(error);
@@ -470,10 +551,16 @@ export const handleTwilioGather = async (req, res, next) => {
     const llmModel = configs?.[0]?.llm_model || 'llama-3.3-70b-versatile';
 
     const aiResponse = await generateResponse(
+      agent.user_id, // Pass user ID for API key and usage tracking
       agent.description,
       conversationHistory,
       SpeechResult || 'Hello',
-      llmModel
+      llmModel,
+      {
+        name: agent.name,
+        type: agent.type,
+        use_case: agent.use_case,
+      }
     );
 
     // Add AI response to history

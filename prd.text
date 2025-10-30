@@ -1,0 +1,316 @@
+# PRD (AI calling tool)
+
+---
+
+---
+
+## Introduction & Product Overview
+
+**Purpose:** Build an AI-driven voice agent that calls or receives calls from students and working professionals exploring study-abroad education loans.
+
+The agent qualifies leads, collects eligibility data, answers FAQs, and seamlessly transfers the call to a human loan expert when needed.
+
+**Scope:**
+
+- Outbound: Call new leads from ads, forms, or partner lists.
+- Inbound: Receive student calls via a toll-free or “Call Now” button.
+- Multilingual: Hinglish (default), English, English + Telugu.
+- Phase 2 ready: Add other regional languages.
+
+**Voice persona:** Female (23-25 yrs), warm, professional, trustworthy — like a knowledgeable student counsellor.
+
+---
+
+## Problem Statement
+
+Loan qualification today is manual, slow, and inconsistent. Counsellors waste time gathering repetitive details (country, co-applicant, collateral, etc.), leaving little bandwidth for real guidance.
+
+An AI voice layer can pre-qualify students, surface viable lender categories instantly, and route hot leads to experts — improving response speed, satisfaction, and conversion.
+
+---
+
+## Target Personas
+
+| Persona | Description | Key Needs |
+| --- | --- | --- |
+| Student (No offer yet) | Planning abroad, unsure of process | Wants early eligibility check |
+| Student (Offer in hand) | Admitted, urgent for visa | Fast sanction & clarity on rates |
+| Working Professional | MBA/MS abroad | Prefers clarity & convenience |
+| Parent / Co-applicant | Funding child’s study | Wants reassurance & transparency |
+
+---
+
+## Goals & Metrics
+
+**North Star Metric:** % of qualified leads transferred to loan expert.
+
+**KPIs:**
+
+- 80 % call completion rate.
+- ≤ 3 min avg qualification time.
+- 55 % expert handoff rate.
+- 4.5 / 5 average CSAT post-handoff.
+- 90 % language accuracy (Hinglish / Telugu).
+
+---
+
+## High-Level Call Journey
+
+```
+Start → Greeting → Language detection → Intent confirmation
+ → Qualification questions
+ → Mapping to loan category (secured / unsecured / intl)
+ → Expectation setting
+ → Offer to connect with human expert
+     ↳ If accepted → warm transfer
+     ↳ If declined → send WhatsApp/SMS follow-up
+ → End with confirmation & thank you
+
+```
+
+Inbound and outbound follow the same mid-flow; inbound skips greeting intro.
+
+---
+
+## Detailed Conversation Flow (Key Branches)
+
+### 6.1 Core Qualification Path
+
+1. Greeting + purpose → “I’m calling to help you explore the best education-loan options for studying abroad.”
+2. Degree level (Bachelor / Master / MBA).
+3. Country of study.
+4. Offer letter status.
+5. Loan amount needed.
+6. Co-applicant and ITR (2 yrs Y/N).
+7. Collateral availability (Y/N).
+8. Visa timeline / urgency.
+9. Reassure on no fees and multiple offers.
+10. Ask for callback time → handoff or schedule.
+
+### 6.2 Language Selection
+
+Detected or user-requested:
+
+- Hinglish
+- English
+- English + Telugu (Phase 1)
+    
+    Agent re-prompts in preferred language mid-call if user requests switch.
+    
+
+### 6.3 Escalation / Dissatisfaction
+
+If negative sentiment detected (“I want to talk to a person,” “You’re not clear”):
+
+→ Immediate human transfer if available or schedule callback within 1 hr.
+
+### 6.4 No response / Call drop
+
+Retry max 3 times (1 hr, 6 hr, 24 hr). Then mark as unreachable.
+
+---
+
+## Functional Requirements
+
+### 7.1 Voice & Speech
+
+- **ASR** (Automatic Speech Recognition) → Google Speech, AWS Transcribe or Bolna native.
+- **TTS** (Text-to-Speech) → Amazon Polly / GCP WaveNet voices (Hinglish, Telugu support).
+- Mid-call language switching detected via confidence scores.
+
+### 7.2 Dialogue Manager
+
+Deterministic state machine for qualification flow + contextual fallbacks.
+
+Maintain conversation context for 3 minutes with session memory.
+
+### 7.3 NLU & Intent Detection
+
+Intents: `loan_interest`, `has_offer`, `no_offer`, `coapplicant`, `collateral`, `visa_timeline`, `handoff_request`, `faq`, `goodbye`.
+
+Entities: country, degree, loan_amount, collateral(Y/N), ITR(Y/N), visa_date, urgency.
+
+Confidence < 0.6 → clarify once, then handoff.
+
+### 7.4 Sentiment & Escalation
+
+Real-time sentiment scoring → Negative for > 2 turns → transfer to human expert.
+
+### 7.5 CRM Integration
+
+Push structured lead summary:
+
+```
+name, phone, language, country, degree, loan_amount,
+offer_letter, coapplicant_itr, collateral, visa_timeline,
+eligibility_category, urgency, sentiment_score, next_step
+
+```
+
+### 7.6 Notifications
+
+After call:
+
+- WhatsApp/SMS summary (“You’ll get a call from our expert shortly”).
+- If no answer → follow-up text with callback link.
+
+---
+
+## Non-Functional Requirements
+
+| Metric | Target |
+| --- | --- |
+| ASR accuracy | ≥ 90 % Hinglish / English, ≥ 85 % Telugu mix |
+| TTS latency | < 1.2 s per turn |
+| Overall call latency | < 2 s |
+| Availability | 99.5 % |
+| Avg call time | ≤ 3 min |
+| Data retention | Encrypted PII ≤ 90 days for training opt-in calls only |
+
+---
+
+## AI Model Requirements
+
+| Function | Model / Approach |
+| --- | --- |
+| ASR | Multilingual speech-to-text (Google Speech v2 / AWS Transcribe) |
+| TTS | GCP WaveNet (Neural Hinglish + Telugu) |
+| NLU / Intent | Lightweight transformer (OpenAI fine-tune or Rasa) |
+| Sentiment | Rule + LLM ensemble (negative tone → flag) |
+| Entity Extraction | Custom regex + NER for loan terms |
+| Decision Engine | Rule-based mapping (see §10) |
+
+---
+
+## Decision Engine (Eligibility Logic)
+
+| Input Condition | Category | Notes |
+| --- | --- | --- |
+| Collateral = Yes | Public Bank Secured | SBI, BOB, PNB |
+| Collateral = No + ITR = Yes | Private/NBFC Unsecured | ICICI, IDFC, Avanse, InCred, Auxilo |
+| Country = US/CA + High merit | Intl USD Lenders | Prodigy, MPOWER |
+| Urgency < 30 days | Fast-track Lenders | NBFCs (Avanse, InCred) |
+| No ITR + No Collateral | Edge Case / Escalate | Human expert required |
+
+---
+
+## Compliance & Privacy
+
+- Consent prompt at start: “This call may be recorded to improve our service. Do you consent?”
+- Encrypt recordings + transcripts (PII masking for training).
+- GDPR / RBI data-localization guidelines followed.
+- Explicit human handoff if financial advice requested.
+
+---
+
+## Human Expert Escalation
+
+**Triggers:** user request / sentiment negative / unclear answers > 2 times.
+
+**Process:**
+
+1. Transfer to available expert via click-to-call API or schedule.
+2. Send expert summary via CRM payload.
+3. Confirm handoff to student via SMS/WA.
+
+---
+
+## Data & CRM Schema
+
+```json
+{
+  "lead_id": "UUID",
+  "name": "string",
+  "phone": "string",
+  "language": "hinglish|english|telugu",
+  "country": "string",
+  "degree": "bachelors|masters|mba",
+  "loan_amount": "number",
+  "offer_letter": "yes|no",
+  "coapplicant_itr": "yes|no",
+  "collateral": "yes|no",
+  "visa_timeline": "string",
+  "eligibility_category": "public_secured|private_unsecured|intl_usd|escalate",
+  "sentiment_score": "float",
+  "urgency": "high|medium|low",
+  "status": "qualified|handoff|callback|unreachable",
+  "created_at": "timestamp"
+}
+
+```
+
+---
+
+## Integrations
+
+| Function | System | Description |
+| --- | --- | --- |
+| Telephony | Bolna / Twilio Voice | Outbound & inbound calls, recording, DTMF fallback |
+| CRM | ForeignAdmits CRM / HubSpot API | Lead sync + status update |
+| Notifications | SuprSend / Gupshup API | WA + SMS follow-ups |
+| TTS/ASR | GCP / AWS | Speech pipeline |
+| Analytics | Amplitude / Mixpanel | Call metrics & funnel tracking |
+
+---
+
+## Language & Voice Design
+
+| Language | ASR Model | TTS Voice | Example Tone |
+| --- | --- | --- | --- |
+| Hinglish | Google Multilingual ASR | GCP WaveNet (Hindi accent) | “Namaste … aap kis country mein padhai karna chahte hain?” |
+| English | AWS Transcribe (EN-IN) | Amazon Polly (Indian female) | “Hi! Congratulations on starting your study-abroad journey.” |
+| Telugu + English | Azure Speech Hybrid | Azure Neural TTS (Telugu) | “Meeru edaina offer letter pondaru aa?” |
+
+Fallback: auto-switch to English if ASR confidence < 0.6.
+
+---
+
+## Edge & Failure Cases
+
+| Case | Handling |
+| --- | --- |
+| Background noise | Repeat once; if still unclear → reschedule. |
+| Mid-call language switch | Detect keywords → switch prompt set. |
+| Aggressive / rude tone | Calm response → transfer to human. |
+| Long silence > 8 s | “Hello? Should I call you later?” → terminate. |
+| Network drop | Re-dial after 10 min interval. |
+
+---
+
+## Future Scalability
+
+- Add visa process FAQ + course counselling intents.
+- Expand languages (phase 2 Tamil, Bengali, Marathi).
+- Real-time offer eligibility API integration with banks.
+- Voice-to-form auto-filling for lead intake forms.
+- Emotional tone adaptation model (friendly vs professional mode).
+
+---
+
+## Acceptance Criteria & Go-Live Checklist
+
+✅ MVP supports 3 languages (Hinglish, English, Telugu).
+
+✅ Qualification accuracy ≥ 85 %.
+
+✅ End-to-end handoff works (voice → CRM → expert).
+
+✅ Sentiment escalation tested and verified.
+
+✅ WhatsApp follow-up triggered within 5 min.
+
+✅ Latency < 2 s between user utterance and TTS response.
+
+✅ All calls log securely with consent captured.
+
+✅ 50 beta calls validated before public launch.
+
+---
+
+### 📦 Deliverables
+
+1. Voice flow JSON / state machine diagram.
+2. Language prompt scripts for Hinglish & Telugu.
+3. Integration API spec for CRM + SuprSend + Voice provider.
+4. Test case suite (Qualification, Escalation, Fallbacks).
+5. Metrics dashboard schema.

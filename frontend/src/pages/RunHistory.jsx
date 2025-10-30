@@ -82,7 +82,7 @@ const RunHistory = () => {
                   <td className="py-3 px-4 text-sm text-gray-600">{formatDateTime(run.created_at)}</td>
                   <td className="py-3 px-4 text-sm">{formatDuration(run.duration_seconds)}</td>
                   <td className="py-3 px-4 text-sm text-gray-600">{run.disposition || '-'}</td>
-                  <td className="py-3 px-4 text-sm font-mono">{formatTokens(run.dograh_tokens)}</td>
+                  <td className="py-3 px-4 text-sm font-mono">{formatTokens(run.groq_tokens)}</td>
                   <td className="py-3 px-4">
                     <button
                       onClick={() => navigate(`/run/${run.id}/completed`)}

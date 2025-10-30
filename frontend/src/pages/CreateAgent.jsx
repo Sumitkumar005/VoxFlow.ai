@@ -1,16 +1,21 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAgent } from '../context/AgentContext';
-import { ArrowLeft, Loader2, Lightbulb, Copy, Check } from 'lucide-react';
+import { ArrowLeft, Loader2, Lightbulb, Copy, Check, AlertTriangle } from 'lucide-react';
 import { VOICE_AI_TEMPLATES, getAllTemplates, getTemplate, generateEnhancedPrompt } from '../utils/voiceAITemplates';
+import ApiKeyWarning from '../components/ApiKeyWarning';
+import { useAuth } from '../context/AuthContext';
+import { usageAPI } from '../utils/api';
 
 const CreateAgent = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { createAgent } = useAgent();
   const [loading, setLoading] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [copiedTemplate, setCopiedTemplate] = useState(false);
+  const [usage, setUsage] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     type: 'OUTBOUND',
@@ -18,8 +23,33 @@ const CreateAgent = () => {
     description: '',
   });
 
+  useEffect(() => {
+    loadUsage();
+  }, []);
+
+  const loadUsage = async () => {
+    try {
+      const response = await usageAPI.getDashboard();
+      setUsage(response.data.data?.current_usage);
+    } catch (error) {
+      console.error('Failed to load usage:', error);
+    }
+  };
+
+  const canCreateAgent = () => {
+    if (!usage || !user) return true; // Allow if data not loaded yet
+    return (usage.agents || 0) < (user.max_agents || 0);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Check agent limit before creating
+    if (!canCreateAgent()) {
+      navigate('/upgrade?reason=agents&from=/agents/create');
+      return;
+    }
+
     setLoading(true);
 
     // Enhance the description with voice AI best practices
@@ -75,6 +105,36 @@ const CreateAgent = () => {
         <p className="text-gray-600 mb-4">
           Create a professional voice AI agent optimized for natural conversations
         </p>
+        
+        {/* API Key Warning */}
+        <ApiKeyWarning className="mb-6" requiredProviders={['groq', 'deepgram']} />
+        
+        {/* Agent Limit Warning */}
+        {usage && !canCreateAgent() && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div className="flex items-start space-x-3">
+              <AlertTriangle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <h3 className="font-medium text-red-900 mb-1">Agent Limit Reached</h3>
+                <p className="text-red-800 text-sm mb-3">
+                  You've reached your limit of {user?.max_agents || 0} agents. 
+                  Upgrade your plan to create more voice AI agents.
+                </p>
+                <div className="flex items-center space-x-4">
+                  <button
+                    onClick={() => navigate('/upgrade?reason=agents&from=/agents/create')}
+                    className="text-red-700 hover:text-red-900 text-sm font-medium underline"
+                  >
+                    Upgrade Plan →
+                  </button>
+                  <span className="text-red-600 text-sm">
+                    Current: {usage?.agents || 0} / {user?.max_agents || 0} agents
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         
         {/* Voice AI Best Practices Banner */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
@@ -245,14 +305,20 @@ const CreateAgent = () => {
 
           <button
             type="submit"
-            disabled={loading}
-            className="w-full btn-primary flex items-center justify-center"
+            disabled={loading || !canCreateAgent()}
+            className={`w-full flex items-center justify-center ${
+              canCreateAgent() 
+                ? 'btn-primary' 
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
           >
             {loading ? (
               <>
                 <Loader2 className="animate-spin mr-2" size={20} />
                 Creating Your VOICE AI AGENT...
               </>
+            ) : !canCreateAgent() ? (
+              '🔒 Upgrade to Create More Agents'
             ) : (
               '🎤 Create VOICE AI AGENT'
             )}

@@ -41,7 +41,17 @@ api.interceptors.response.use(
 // Auth APIs
 export const authAPI = {
   login: (credentials) => api.post('/api/auth/login', credentials),
+  register: (data) => api.post('/api/auth/register', data),
   getMe: () => api.get('/api/auth/me'),
+};
+
+// API Key Management APIs
+export const apiKeyAPI = {
+  getAll: () => api.get('/api/api-keys/status'),
+  save: (provider, data) => api.post(`/api/api-keys/${provider}`, data),
+  update: (provider, data) => api.put(`/api/api-keys/${provider}`, data),
+  delete: (provider) => api.delete(`/api/api-keys/${provider}`),
+  validate: (provider, data) => api.get(`/api/api-keys/validate?providers=${provider}`),
 };
 
 // Agent APIs
@@ -95,6 +105,33 @@ export const usageAPI = {
 export const reportAPI = {
   getDaily: (params) => api.get('/api/reports/daily', { params }),
   downloadCSV: (params) => api.get('/api/reports/download', { 
+    params,
+    responseType: 'blob',
+  }),
+};
+
+// Admin APIs
+export const adminAPI = {
+  // Dashboard and Analytics
+  getDashboard: () => api.get('/api/admin/dashboard'),
+  getPlatformOverview: () => api.get('/api/admin/analytics/overview'),
+  getUserGrowthAnalytics: (params) => api.get('/api/admin/analytics/user-growth', { params }),
+  getUsageAnalytics: (params) => api.get('/api/admin/analytics/usage', { params }),
+  getRevenueAnalytics: () => api.get('/api/admin/analytics/revenue'),
+  getSystemHealth: () => api.get('/api/admin/analytics/system-health'),
+  
+  // User Management
+  getUsers: (params) => api.get('/api/admin/users', { params }),
+  getUserById: (id) => api.get(`/api/admin/users/${id}`),
+  updateUser: (id, data) => api.put(`/api/admin/users/${id}`, data),
+  deactivateUser: (id) => api.post(`/api/admin/users/${id}/deactivate`),
+  activateUser: (id) => api.post(`/api/admin/users/${id}/activate`),
+  
+  // Audit Logs
+  getAuditLogs: (params) => api.get('/api/admin/audit-logs', { params }),
+  
+  // Data Export
+  exportAnalyticsData: (type, params) => api.get(`/api/admin/analytics/export/${type}`, { 
     params,
     responseType: 'blob',
   }),

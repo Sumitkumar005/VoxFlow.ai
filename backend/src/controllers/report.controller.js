@@ -150,7 +150,7 @@ export const downloadReportCSV = async (req, res, next) => {
         run.disposition || 'N/A',
         new Date(run.created_at).toLocaleString(),
         run.duration_seconds || 0,
-        run.dograh_tokens || 0,
+        run.groq_tokens || 0,
       ]);
     });
 

@@ -6,12 +6,14 @@ import { getMicrophoneStream, stopMediaStream } from '../utils/webrtc';
 import CallInterface from '../components/CallInterface';
 import LoadingSpinner from '../components/LoadingSpinner';
 import VoiceVisualizer from '../components/VoiceVisualizer';
+import ApiKeyWarning from '../components/ApiKeyWarning';
 
 const WebCall = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [agent, setAgent] = useState(null);
   const [runId, setRunId] = useState(null);
+  const runIdRef = useRef(null);
   const [isCallActive, setIsCallActive] = useState(false);
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -86,7 +88,9 @@ const WebCall = () => {
 
       // Start call on backend
       const response = await callAPI.startWebCall({ agent_id: id });
-      setRunId(response.data.data.run_id);
+      const newRunId = response.data.data.run_id;
+      setRunId(newRunId);
+      runIdRef.current = newRunId;
       setIsCallActive(true);
       setStartTime(Date.now());
 
@@ -374,7 +378,7 @@ const WebCall = () => {
       }));
 
       const response = await callAPI.processMessage({
-        run_id: runId,
+        run_id: runIdRef.current,
         message: transcript,
         conversation_history: cleanHistory,
       });
@@ -455,7 +459,7 @@ const WebCall = () => {
       }));
 
       await callAPI.endWebCall({
-        run_id: runId,
+        run_id: runIdRef.current,
         conversation_history: cleanHistory,
         duration_seconds: duration,
         disposition: 'user_hangup',
@@ -513,6 +517,9 @@ const WebCall = () => {
         <ArrowLeft size={20} />
         <span>Back to Agent</span>
       </button>
+
+      {/* API Key Warning */}
+      <ApiKeyWarning className="mb-6" requiredProviders={['groq', 'deepgram']} />
 
       <div className="card">
         {!isCallActive ? (
