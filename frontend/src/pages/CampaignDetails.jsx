@@ -71,16 +71,17 @@ const CampaignDetails = () => {
   if (loading) return <LoadingSpinner />;
 
   return (
-    <div>
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-7xl mx-auto px-6">
       <button
         onClick={() => navigate('/campaigns')}
-        className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-6"
+        className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
       >
         <ArrowLeft size={20} />
-        <span>Back to Campaigns</span>
+        <span className="font-medium">Back to Campaigns</span>
       </button>
 
-      <div className="card mb-6">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
         <div className="flex justify-between items-start mb-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">{campaign.name}</h1>
@@ -91,7 +92,7 @@ const CampaignDetails = () => {
 
           <div className="flex space-x-2">
             {campaign.state === 'created' && (
-              <button onClick={handleStart} className="btn-primary flex items-center space-x-2">
+              <button onClick={handleStart} className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-purple-800 transition-all shadow-lg shadow-purple-500/30 flex items-center space-x-2">
                 <Play size={18} />
                 <span>Start Campaign</span>
               </button>
@@ -99,11 +100,11 @@ const CampaignDetails = () => {
 
             {campaign.state === 'running' && (
               <>
-                <button onClick={handlePause} className="btn-secondary flex items-center space-x-2">
+                <button onClick={handlePause} className="px-6 py-3 bg-white border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-all flex items-center space-x-2">
                   <Pause size={18} />
                   <span>Pause</span>
                 </button>
-                <button onClick={handleStop} className="btn-danger flex items-center space-x-2">
+                <button onClick={handleStop} className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg font-semibold hover:from-red-700 hover:to-red-800 transition-all shadow-lg shadow-red-500/30 flex items-center space-x-2">
                   <Square size={18} />
                   <span>Stop</span>
                 </button>
@@ -112,11 +113,11 @@ const CampaignDetails = () => {
 
             {campaign.state === 'paused' && (
               <>
-                <button onClick={handleResume} className="btn-primary flex items-center space-x-2">
+                <button onClick={handleResume} className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-purple-800 transition-all shadow-lg shadow-purple-500/30 flex items-center space-x-2">
                   <Play size={18} />
                   <span>Resume</span>
                 </button>
-                <button onClick={handleStop} className="btn-danger flex items-center space-x-2">
+                <button onClick={handleStop} className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg font-semibold hover:from-red-700 hover:to-red-800 transition-all shadow-lg shadow-red-500/30 flex items-center space-x-2">
                   <Square size={18} />
                   <span>Stop</span>
                 </button>
@@ -141,7 +142,7 @@ const CampaignDetails = () => {
         </div>
       </div>
 
-      <div className="card">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <h2 className="text-xl font-bold text-gray-900 mb-4">Agent Runs</h2>
         
         {campaign.runs && campaign.runs.length > 0 ? (
@@ -167,7 +168,7 @@ const CampaignDetails = () => {
                   <td className="py-3 px-4">
                     <button
                       onClick={() => navigate(`/run/${run.id}/completed`)}
-                      className="text-blue-600 hover:text-blue-800 flex items-center space-x-1"
+                      className="text-purple-600 hover:text-purple-800 flex items-center space-x-1 font-medium transition-colors"
                     >
                       <Eye size={16} />
                       <span>View</span>
@@ -182,6 +183,7 @@ const CampaignDetails = () => {
             No runs yet. Start the campaign to begin execution.
           </p>
         )}
+      </div>
       </div>
     </div>
   );

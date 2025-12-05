@@ -87,27 +87,29 @@ const Usage = () => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Usage Dashboard</h1>
-          <p className="text-gray-600 mt-1">
-            Monitor your usage and subscription limits for {user?.subscription_tier || 'Free'} plan
-          </p>
-        </div>
-        
-        {/* Period Selector */}
-        <div className="flex items-center space-x-2">
-          <select
-            value={selectedPeriod}
-            onChange={(e) => setSelectedPeriod(e.target.value)}
-            className="input-field text-sm"
-          >
-            <option value="current">Current Month</option>
-            <option value="last30">Last 30 Days</option>
-            <option value="last90">Last 90 Days</option>
-          </select>
-        </div>
-      </div>
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Usage Dashboard</h1>
+              <p className="text-gray-600 mt-1">
+                Monitor your usage and subscription limits for {user?.subscription_tier || 'Free'} plan
+              </p>
+            </div>
+            
+            {/* Period Selector */}
+            <div className="flex items-center space-x-2">
+              <select
+                value={selectedPeriod}
+                onChange={(e) => setSelectedPeriod(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              >
+                <option value="current">Current Month</option>
+                <option value="last30">Last 30 Days</option>
+                <option value="last90">Last 90 Days</option>
+              </select>
+            </div>
+          </div>
 
       {/* Subscription Status Banner */}
       {(tokenUsagePercent >= 90 || agentUsagePercent >= 90) && (
@@ -130,10 +132,10 @@ const Usage = () => {
       {/* Usage Limit Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         {/* Token Usage */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-2">
-              <Zap className="w-5 h-5 text-blue-600" />
+              <Zap className="w-5 h-5 text-purple-600" />
               <h3 className="font-medium text-gray-900">Token Usage</h3>
             </div>
             <div className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(tokenUsagePercent)}`}>
@@ -162,10 +164,10 @@ const Usage = () => {
         </div>
 
         {/* Agent Usage */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-2">
-              <Users className="w-5 h-5 text-green-600" />
+              <Users className="w-5 h-5 text-purple-600" />
               <h3 className="font-medium text-gray-900">Agent Limit</h3>
             </div>
             <div className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(agentUsagePercent)}`}>
@@ -196,25 +198,25 @@ const Usage = () => {
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-medium text-gray-600">Total Calls</h3>
-            <Phone className="h-5 w-5 text-blue-600" />
+            <Phone className="h-5 w-5 text-purple-600" />
           </div>
           <p className="text-3xl font-bold text-gray-900">{dashboard?.total_runs || 0}</p>
           <p className="text-sm text-gray-500 mt-1">This period</p>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-medium text-gray-600">Call Duration</h3>
-            <Clock className="h-5 w-5 text-green-600" />
+            <Clock className="h-5 w-5 text-purple-600" />
           </div>
           <p className="text-3xl font-bold text-gray-900">{dashboard?.total_duration_formatted || '0m'}</p>
           <p className="text-sm text-gray-500 mt-1">Total time</p>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-medium text-gray-600">Estimated Cost</h3>
             <DollarSign className="h-5 w-5 text-purple-600" />
@@ -223,13 +225,15 @@ const Usage = () => {
           <p className="text-sm text-gray-500 mt-1">API usage cost</p>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-medium text-gray-600">Success Rate</h3>
-            <TrendingUp className="h-5 w-5 text-orange-600" />
+            <TrendingUp className="h-5 w-5 text-purple-600" />
           </div>
           <p className="text-3xl font-bold text-gray-900">{dashboard?.success_rate || '0'}%</p>
           <p className="text-sm text-gray-500 mt-1">Successful calls</p>
+        </div>
+      </div>
         </div>
       </div>
 

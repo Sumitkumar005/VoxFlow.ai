@@ -73,9 +73,6 @@ const ServiceConfig = () => {
                 onChange={(e) => setFormData({ ...formData, llm_provider: e.target.value })}
               >
                 <option value="groq">Groq</option>
-                <option value="openai">OpenAI</option>
-                <option value="google">Google</option>
-                <option value="azure">Azure</option>
               </select>
             </div>
 
@@ -88,9 +85,11 @@ const ServiceConfig = () => {
                 value={formData.llm_model}
                 onChange={(e) => setFormData({ ...formData, llm_model: e.target.value })}
               >
-                <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile</option>
-                <option value="llama-3.1-8b-instant">llama-3.1-8b-instant</option>
+                <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile (Recommended)</option>
+                <option value="llama-3.1-70b-versatile">llama-3.1-70b-versatile</option>
+                <option value="llama-3.1-8b-instant">llama-3.1-8b-instant (Faster)</option>
                 <option value="deepseek-r1-distill-llama-70b">deepseek-r1-distill-llama-70b</option>
+                <option value="mixtral-8x7b-32768">mixtral-8x7b-32768</option>
               </select>
             </div>
           </div>

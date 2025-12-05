@@ -8,10 +8,12 @@
 import { LoggingService } from './logging.service.js';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
+// Use service role key if available, otherwise use anon key
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY;
+const supabase = supabaseKey ? createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+  supabaseKey
+) : null;
 
 class ErrorTrackingService {
   /**

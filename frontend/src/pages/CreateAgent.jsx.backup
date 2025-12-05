@@ -1,0 +1,348 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { agentAPI, usageAPI } from '../utils/api';
+import { ArrowLeft, Phone, Globe, AlertTriangle, Sparkles, MessageSquare, PhoneCall, Target, Briefcase, ArrowRight } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import ApiKeyWarning from '../components/ApiKeyWarning';
+
+const CreateAgent = () => {
+();
+  const { user } = useAuth(
+  const [loading, setLoading] = u(false);
+  const [usage, setUsage] = u
+  const [selectedTemplate, setSelecte);
+  const [formData, setFormData] = useState({
+    name: '',
+    type: 'INBOUND',
+    description: '',
+    system_prompt: '',
+    use_case: '',
+    first_mes'',
+  });
+
+  useEffect(() => {
+    l);
+);
+
+  const loadUsag{
+    try {
+shboard();
+      setUsage(response.data.datage);
+    } cator) {
+      console.error('Failed to load usage:', error);
+    }
+  };
+
+  con= () => {
+    
+ents;
+  };
+
+  const handleTemplateSelect = (templateName) => {
+    Name);
+;
+    
+    if (template) {
+    mData({
+        ...formData,
+        name: template.name,
+        description: template.description,
+        use_came,
+     e),
+),
+      });
+  }
+  };
+
+  const getTemplatePrompt =
+    const prompts = {
+      'Customer Supnal.',
+      ,
+ly.',
+      'Lead Qualifier': 'You are a lean.',
+      'HR Assistan
+    };
+    ret;
+};
+
+  const getTemplateFirstMessage = (templateN=> {
+    c {
+?',
+      'Sales Assistant',
+    ,
+,
+      'HR Assistant': 'Hi! I\'m your HR assistant.',
+    };
+    return messagese] || '';
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!canCreateAgent()) {
+      if (window.confirm('You\
+     reate');
+     }
+
+    }
+
+    setLoading(true);
+
+    try {
+Data);
+      navigate(`/agend}`);
+    } catch (error) {
+      console.error('Failed to create agent:', error);
+      alert('Failed to create agent');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  co[
+' },
+    { name: 'Sales Assis
+    { name: 'Appointment Scheduler', icon: PhoneCall, color: 'orange', description: 'B
+    { name: 'Lead Qualifier', icon: Target, color: 'yellow', description: 'E' },
+    { name: 'HR Assistant', icon: Briefcase, color: 'purple', description: 'Answer emp,
+  ];
+
+ {
+    purple,
+    teal: 'from-teal-500 to-teal-600 hover:fr
+    orange: 'from-orange-500 to-orange-600 hover:fr700',
+    yellow: 'fr00',
+  };
+
+  return 
+    <div className="min-h-screen 
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <button
+nts')}
+          className="fn-colors"
+        >
+          <ArrowLeft size={20} />
+          <span className="font-medium"pan>
+        </button>
+
+        {/* He
+        -8">
+          <h1 className=ent</h1>
+          <p className="text-gray-600">
+        ions
+          </p>
+        </div>
+        
+        {/* Warnings */}
+        <ApiKeyWarning className="mb-6" requiredProviders={['groq', 'deepgram']} />
+        
+        {/* Agent Limit Warning */}
+        {usage && !canCreateAgent() && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div className="flex items-start space-x-3">
+              <Alertnk-0" />
+              <div className="flex-1">
+                <h3 classhed</h3>
+                <p className="text-red-800 text-sm mb-3">
+                  You've reached your limit of {user?.max_agents || 0} agents. 
+                  Us.
+                </p>
+                <div classN">
+                  <button
+                    onClick={() => navigate('/upgrade?reason=agents&from=/agents/c')}
+                    classm"
+                  >
+                    
+                  
+                
+          ents
+        
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Two-Panel Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Left Panel - Form */}
+          <div classNa p-8">
+            <h2 classn</h2>
+            
+            <form onSubmit={handleSubmit} className="sp6">
+              <div>
+                <label
+                  Agen*
+                </label>
+              
+                  type="text"
+                  className="input-field"
+                  placeholder="e.g., Customer Support Agent"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.ue })}
+                  requir
+                />
+              </div>
+
+              <div>
+                <label cl-2">
+                  Agent Type *
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, type: ' })}
+                    className={`p-4 rounded-lg border-2 trans
+                      for
+                       e-50'
+                      
+                }
+                  >
+                    <Phone className="w-6 h-6 mx-auto mb-2 text-purp>
+                    <div className="font-medium text-gray-900">Idiv>
+                    <div className="text-xs text-gray-600 mt-1">Receives calls
+                  </butt
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, typeOUND' })}
+                    className={`p-4 rounded-lg border-2 transll ${
+                      forUTBOUND'
+                        ? 'border-purple-500 bg-purple-50'
+                        : 'border-gray-200 hover:border-purple-300'
+                    }`}
+                  >
+                    <Globe className="w-6 h-6 mx-auto
+                    <div className="font-medium text-gray-900">Outv>
+                    <div className="text-xs text-gray-600 mt</div>
+                  </butto>
+                </div>
+              </div>
+
+              <div
+
+                  Description
+                </label>
+                <textarea
+              field"
+                  rows="3"
+                  pla"
+                  value={formData.description}
+                  onChange={(e}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-">
+                  Use Case
+                </label>
+                <input
+                  tyt"
+                  clas
+"
+                  val}
+                  onChange={(e) => setFormData({ ...formData, use_case: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="b">
+                  System Prompt *
+                </label>
+                <textarea
+                  className="input-field"
+                  rows="4"
+                  placehor..."
+                  valmpt}
+                  onChange={(
+                  required
+                />
+                <p className="text-
+                  This defines how your agent will behave and respond
+                </p>
+              </div>
+
+              <div>
+                <label cl-2">
+                  Fir Message
+                </label>
+                <textarea
+                  classN"
+                  rows
+
+                  val
+                  onChange={(e) => setFormData({ ...formData, first_message: e.tar })}
+                />
+              </div>
+
+              <div className="f-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => navigate('/agents')}
+                  className="flex-1 px-6 py-3 bg-white border-2 border-gray-300 text-gray-70"
+                >
+                  Ca
+                </button>
+                <button
+                  typeit"
+                  disa}
+"
+                >
+                  {loading ? 'Creating...' : 'Create Agent'}
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Right Panel - Templates */}
+          <div className="bg-white rounded-xl sh">
+            <div className="flex items-center space-x-2 mb-2">
+              <Sparkles clas>
+              <h3 cls</h3>
+            </div>
+            <p className="text-sm text-gray-600 mb-6">
+              Start with 
+            </p>
+            
+            <div className2">
+              {templates
+                const con;
+rn (
+                  <button
+                    key={templa.name}
+                    type="button"
+                    onClick={() => handleTemplateSelect(template.name)}
+                    className={`w-ful${
+                      selectedTemplate === template.name
+                        ? 'border-purple-500 bg-purple-50'
+                     '
+                 `}
+                  >
+                    <d>
+                      <div className={`w-12 h-12 rounded-lg bg-gradi
+                        <Icon className="w-6 h-6 text-white" />
+                      <iv>
+                      <div className="flex-">
+                        <h4 className="font-semibold text-gray-90">
+                       me}
+                      
+                        <p className="text-s2">
+                          {template.description}
+                       p>
+                    m">
+                         pan>
+                     >
+                  v>
+                 </div>
+
+                  </button>
+               );
+              })}
+            </div>
+          </di
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default CreateAgent;

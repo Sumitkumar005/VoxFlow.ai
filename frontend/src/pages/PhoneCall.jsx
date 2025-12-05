@@ -15,7 +15,7 @@ const PhoneCall = () => {
 
   useEffect(() => {
     loadAgent();
-    checkTelephonyConfig();
+    checkAPIKeys();
   }, [id]);
 
   const loadAgent = async () => {
@@ -29,12 +29,18 @@ const PhoneCall = () => {
     }
   };
 
-  const checkTelephonyConfig = async () => {
+  const checkAPIKeys = async () => {
     try {
-      const response = await configAPI.getTelephony();
-      setHasConfig(response.data.data?.is_configured || false);
+      // Check if user has configured Twilio API keys
+      const response = await fetch('/api/api-keys/status', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      const data = await response.json();
+      setHasConfig(data.data?.twilio?.is_active || false);
     } catch (error) {
-      console.error('Failed to check config:', error);
+      console.error('Failed to check API keys:', error);
     }
   };
 
@@ -42,8 +48,8 @@ const PhoneCall = () => {
     e.preventDefault();
     
     if (!hasConfig) {
-      if (window.confirm('Telephony not configured. Would you like to configure it now?')) {
-        navigate('/config/telephony');
+      if (window.confirm('Twilio API keys not configured. Would you like to add them now?')) {
+        navigate('/config/api-keys');
       }
       return;
     }
@@ -69,7 +75,8 @@ const PhoneCall = () => {
   if (loading) return <LoadingSpinner />;
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-3xl mx-auto px-6">
       <button
         onClick={() => navigate(`/agents/${id}`)}
         className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-6"
@@ -78,7 +85,7 @@ const PhoneCall = () => {
         <span>Back to Agent</span>
       </button>
 
-      <div className="card">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Phone Call</h1>
         <p className="text-gray-600 mb-6">
           Enter the phone number to call. The number will be saved automatically.
@@ -87,9 +94,9 @@ const PhoneCall = () => {
         {!hasConfig && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
             <p className="text-yellow-800">
-              ⚠️ Telephony not configured.{' '}
+              ⚠️ Twilio API keys not configured.{' '}
               <button
-                onClick={() => navigate('/config/telephony')}
+                onClick={() => navigate('/config/api-keys')}
                 className="text-yellow-900 font-semibold underline"
               >
                 Configure Now
@@ -119,7 +126,7 @@ const PhoneCall = () => {
           <button
             type="submit"
             disabled={calling || !hasConfig}
-            className="w-full btn-primary flex items-center justify-center space-x-2"
+            className="w-full py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-purple-800 transition-all shadow-lg shadow-purple-500/30 flex items-center justify-center space-x-2 disabled:opacity-50"
           >
             {calling ? (
               <>
@@ -134,6 +141,7 @@ const PhoneCall = () => {
             )}
           </button>
         </form>
+      </div>
       </div>
     </div>
   );

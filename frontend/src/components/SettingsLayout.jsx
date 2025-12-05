@@ -3,7 +3,6 @@ import { Link, useLocation } from 'react-router-dom';
 import { 
   Settings, 
   Key, 
-  Phone, 
   Sliders,
   ChevronRight 
 } from 'lucide-react';
@@ -21,14 +20,8 @@ const SettingsLayout = ({ children }) => {
     {
       path: '/config/api-keys',
       label: 'API Keys',
-      description: 'Manage your API keys for external services',
+      description: 'Manage your API keys (Groq, Deepgram, Twilio)',
       icon: Key,
-    },
-    {
-      path: '/config/telephony',
-      label: 'Telephony',
-      description: 'Configure phone call settings',
-      icon: Phone,
     },
   ];
 

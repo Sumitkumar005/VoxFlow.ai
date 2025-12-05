@@ -89,14 +89,14 @@ const Upgrade = () => {
           <div className="flex items-center justify-between">
             <button
               onClick={() => navigate(from || '/agents')}
-              className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
+              className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
             >
               <ArrowLeft size={20} />
-              <span>Back</span>
+              <span className="font-medium">Back</span>
             </button>
             
             <div className="text-center flex-1 mx-8">
-              <h1 className="text-2xl font-bold text-gray-900">{upgradeReason.title}</h1>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent">{upgradeReason.title}</h1>
               <p className="text-gray-600 mt-1">{upgradeReason.description}</p>
             </div>
             
@@ -161,14 +161,14 @@ const Upgrade = () => {
         />
 
         {/* Benefits Section */}
-        <div className="mt-16 bg-white rounded-lg border border-gray-200 p-8">
-          <h2 className="text-2xl font-bold text-gray-900 text-center mb-8">
+        <div className="mt-16 bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent text-center mb-8">
             Why Upgrade to Pro?
           </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl">🚀</span>
               </div>
               <h3 className="font-semibold text-gray-900 mb-2">Scale Your Operations</h3>
@@ -179,7 +179,7 @@ const Upgrade = () => {
             </div>
             
             <div className="text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl">📞</span>
               </div>
               <h3 className="font-semibold text-gray-900 mb-2">Phone Call Support</h3>

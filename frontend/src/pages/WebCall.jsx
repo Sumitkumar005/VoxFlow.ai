@@ -509,19 +509,20 @@ const WebCall = () => {
   if (loading) return <LoadingSpinner />;
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <button
-        onClick={() => navigate(`/agents/${id}`)}
-        className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-6"
-      >
-        <ArrowLeft size={20} />
-        <span>Back to Agent</span>
-      </button>
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-4xl mx-auto px-6">
+        <button
+          onClick={() => navigate(`/agents/${id}`)}
+          className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
+        >
+          <ArrowLeft size={20} />
+          <span className="font-medium">Back to Agent</span>
+        </button>
 
-      {/* API Key Warning */}
-      <ApiKeyWarning className="mb-6" requiredProviders={['groq', 'deepgram']} />
+        {/* API Key Warning */}
+        <ApiKeyWarning className="mb-6" requiredProviders={['groq', 'deepgram']} />
 
-      <div className="card">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
         {!isCallActive ? (
           <CallInterface
             agentName={agent?.name || 'Voice Agent'}
@@ -538,7 +539,7 @@ const WebCall = () => {
               <button
                 onClick={handleEndCall}
                 disabled={isProcessing}
-                className="btn-danger"
+                className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg font-semibold hover:from-red-700 hover:to-red-800 transition-all shadow-lg shadow-red-500/30"
               >
                 End Call
               </button>
@@ -613,6 +614,7 @@ const WebCall = () => {
             </p>
           </div>
         )}
+        </div>
       </div>
     </div>
   );

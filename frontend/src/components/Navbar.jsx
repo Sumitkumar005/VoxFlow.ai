@@ -1,27 +1,30 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
-  Mic, 
-  LayoutDashboard, 
+  Bot, 
+  Home,
   Radio, 
   BarChart3, 
   FileText, 
-  Code, 
+  Settings,
   LogOut,
-  Settings
+  User,
+  ChevronDown,
+  Zap
 } from 'lucide-react';
+import { useState } from 'react';
 
 const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   const navItems = [
-    { path: '/agents', label: 'Agents', icon: Mic },
+    { path: '/agents', label: 'Agents', icon: Bot },
     { path: '/campaigns', label: 'Campaigns', icon: Radio },
     { path: '/usage', label: 'Usage', icon: BarChart3 },
     { path: '/reports', label: 'Reports', icon: FileText },
-    { path: '/developers', label: 'Developers', icon: Code },
   ];
 
   const handleLogout = () => {
@@ -32,35 +35,39 @@ const Navbar = () => {
   const isActive = (path) => location.pathname.startsWith(path);
 
   return (
-    <nav className="bg-white shadow-sm border-b">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
+    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+      <div className="px-6">
+        <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <div className="flex items-center">
-            <Link to="/agents" className="flex items-center space-x-2">
-              <div className="bg-blue-600 p-2 rounded-lg">
-                <Mic className="h-6 w-6 text-white" />
-              </div>
-              <span className="text-xl font-bold text-gray-900">VoxFlow</span>
-            </Link>
-          </div>
+          <Link to="/agents" className="flex items-center space-x-3 group">
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/30 group-hover:shadow-purple-500/50 transition-all">
+              <Zap className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent">
+                VoxFlow
+              </span>
+              <span className="block text-xs text-gray-500 -mt-1">Voice AI Platform</span>
+            </div>
+          </Link>
 
           {/* Nav Links */}
-          <div className="hidden md:flex items-center space-x-1">
+          <div className="hidden md:flex items-center space-x-2">
             {navItems.map((item) => {
               const Icon = item.icon;
+              const active = isActive(item.path);
               return (
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-                    isActive(item.path)
-                      ? 'bg-blue-50 text-blue-600'
-                      : 'text-gray-600 hover:bg-gray-50'
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all ${
+                    active
+                      ? 'bg-purple-50 text-purple-700 shadow-sm'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   }`}
                 >
-                  <Icon size={18} />
-                  <span className="font-medium">{item.label}</span>
+                  <Icon size={18} className={active ? 'text-purple-600' : ''} />
+                  <span>{item.label}</span>
                 </Link>
               );
             })}
@@ -70,45 +77,106 @@ const Navbar = () => {
           <div className="flex items-center space-x-4">
             <Link
               to="/config"
-              className="text-gray-600 hover:text-gray-900"
+              className={`p-2 rounded-lg transition-all ${
+                isActive('/config')
+                  ? 'bg-purple-50 text-purple-600'
+                  : 'text-gray-600 hover:bg-gray-50'
+              }`}
               title="Settings"
             >
               <Settings size={20} />
             </Link>
             
-            <div className="flex items-center space-x-3">
-              <div className="text-right">
-                <div className="text-sm font-medium text-gray-900">{user?.email}</div>
-              </div>
+            <div className="relative">
               <button
-                onClick={handleLogout}
-                className="flex items-center space-x-2 text-gray-600 hover:text-red-600 transition-colors"
-                title="Logout"
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                <LogOut size={20} />
+                <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
+                  <User className="w-4 h-4 text-white" />
+                </div>
+                <div className="hidden lg:block text-left">
+                  <div className="text-sm font-medium text-gray-900">
+                    {user?.email?.split('@')[0] || 'User'}
+                  </div>
+                  <div className="text-xs text-gray-500 capitalize">
+                    {user?.subscription_tier || 'Free'} Plan
+                  </div>
+                </div>
+                <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
               </button>
+
+              {/* Dropdown Menu */}
+              {showUserMenu && (
+                <>
+                  <div 
+                    className="fixed inset-0 z-10" 
+                    onClick={() => setShowUserMenu(false)}
+                  />
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-20">
+                    <div className="px-4 py-3 border-b border-gray-100">
+                      <p className="text-sm font-medium text-gray-900">{user?.email}</p>
+                      <p className="text-xs text-gray-500 mt-1 capitalize">
+                        {user?.subscription_tier || 'Free'} Plan • {user?.max_agents || 0} Agents
+                      </p>
+                    </div>
+                    
+                    <Link
+                      to="/config"
+                      onClick={() => setShowUserMenu(false)}
+                      className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <Settings className="w-4 h-4" />
+                      <span>Settings</span>
+                    </Link>
+                    
+                    <Link
+                      to="/upgrade"
+                      onClick={() => setShowUserMenu(false)}
+                      className="flex items-center space-x-2 px-4 py-2 text-sm text-purple-600 hover:bg-purple-50 transition-colors"
+                    >
+                      <Zap className="w-4 h-4" />
+                      <span>Upgrade Plan</span>
+                    </Link>
+                    
+                    <div className="border-t border-gray-100 mt-2 pt-2">
+                      <button
+                        onClick={() => {
+                          setShowUserMenu(false);
+                          handleLogout();
+                        }}
+                        className="flex items-center space-x-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors w-full"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span>Logout</span>
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
       </div>
 
       {/* Mobile Nav */}
-      <div className="md:hidden border-t">
-        <div className="flex justify-around py-2">
+      <div className="md:hidden border-t border-gray-200 bg-white">
+        <div className="flex justify-around py-2 px-2">
           {navItems.map((item) => {
             const Icon = item.icon;
+            const active = isActive(item.path);
             return (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex flex-col items-center space-y-1 px-3 py-2 rounded-lg ${
-                  isActive(item.path)
-                    ? 'text-blue-600'
+                className={`flex flex-col items-center space-y-1 px-3 py-2 rounded-lg transition-all ${
+                  active
+                    ? 'text-purple-600 bg-purple-50'
                     : 'text-gray-600'
                 }`}
               >
                 <Icon size={20} />
-                <span className="text-xs">{item.label}</span>
+                <span className="text-xs font-medium">{item.label}</span>
               </Link>
             );
           })}

@@ -53,7 +53,7 @@ const CreateCampaign = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="min-h-screen bg-gray-50 py-8"><div className="max-w-3xl mx-auto">
       <button
         onClick={() => navigate('/campaigns')}
         className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-6"
@@ -62,7 +62,7 @@ const CreateCampaign = () => {
         <span>Back to Campaigns</span>
       </button>
 
-      <div className="card">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-6">Create New Campaign</h1>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -129,14 +129,14 @@ const CreateCampaign = () => {
             <button
               type="button"
               onClick={() => navigate('/campaigns')}
-              className="btn-secondary flex-1"
+              className="flex-1 px-6 py-3 bg-white border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-all"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary flex-1 flex items-center justify-center"
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-purple-800 transition-all shadow-lg shadow-purple-500/30 flex items-center justify-center disabled:opacity-50"
             >
               {loading ? (
                 <>
@@ -149,6 +149,7 @@ const CreateCampaign = () => {
             </button>
           </div>
         </form>
+      </div>
       </div>
     </div>
   );

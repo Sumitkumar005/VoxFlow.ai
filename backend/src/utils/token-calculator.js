@@ -11,9 +11,10 @@ export const calculateTokens = (durationSeconds) => {
 
 /**
  * Generate unique run number
- * Format: WR-TEL-XXXX
+ * Format: WR-TEL-TIMESTAMP-XXXX
  */
 export const generateRunNumber = () => {
+  const timestamp = Date.now().toString().slice(-6); // Last 6 digits of timestamp
   const randomNum = Math.floor(1000 + Math.random() * 9000);
-  return `WR-TEL-${randomNum}`;
+  return `WR-TEL-${timestamp}-${randomNum}`;
 };

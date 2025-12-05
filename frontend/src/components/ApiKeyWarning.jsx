@@ -9,7 +9,10 @@ const ApiKeyWarning = ({
   className = '',
   requiredProviders = null 
 }) => {
-  const { getOverallStatus, getMissingRequiredProviders, canUseFeature } = useApiKeyStatus();
+  const { getOverallStatus, getMissingRequiredProviders, canUseFeature, loading } = useApiKeyStatus();
+  
+  // Don't show anything while loading to prevent flash
+  if (loading) return null;
   
   // If specific providers are required, check those
   const shouldShow = requiredProviders 

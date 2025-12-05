@@ -15,7 +15,6 @@ import WebCall from './pages/WebCall';
 import PhoneCall from './pages/PhoneCall';
 import RunCompleted from './pages/RunCompleted';
 import RunHistory from './pages/RunHistory';
-import TelephonyConfig from './pages/TelephonyConfig';
 import ServiceConfig from './pages/ServiceConfig';
 import ApiKeySettings from './pages/ApiKeySettings';
 import Upgrade from './pages/Upgrade';
@@ -101,7 +100,6 @@ function App() {
                         
                         <Route path="/config" element={<ServiceConfig />} />
                         <Route path="/config/api-keys" element={<ApiKeySettings />} />
-                        <Route path="/config/telephony" element={<TelephonyConfig />} />
                         
                         <Route path="/developers" element={<Home />} />
                       </Routes>
