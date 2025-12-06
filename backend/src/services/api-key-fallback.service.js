@@ -61,13 +61,12 @@ class APIKeyFallbackService {
       // Try to get user's Twilio credentials
       const userTwilioKey = await getUserAPIKey(userId, 'twilio');
       
-      if (userTwilioKey) {
-        // Parse user's Twilio credentials (stored as JSON)
-        const credentials = JSON.parse(userTwilioKey);
+      if (userTwilioKey && typeof userTwilioKey === 'object') {
+        // getUserAPIKey already returns parsed object for Twilio
         return {
-          accountSid: credentials.account_sid,
-          authToken: credentials.auth_token,
-          fromPhoneNumber: credentials.from_phone_number
+          accountSid: userTwilioKey.account_sid,
+          authToken: userTwilioKey.auth_token,
+          phoneNumber: userTwilioKey.phone_number
         };
       }
     } catch (error) {
@@ -79,7 +78,7 @@ class APIKeyFallbackService {
     return {
       accountSid: process.env.TWILIO_ACCOUNT_SID,
       authToken: process.env.TWILIO_AUTH_TOKEN,
-      fromPhoneNumber: process.env.TWILIO_FROM_PHONE_NUMBER
+      phoneNumber: process.env.TWILIO_PHONE_NUMBER
     };
   }
 

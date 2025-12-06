@@ -380,10 +380,11 @@ export const getCampaignById = async (req, res, next) => {
 export const startCampaign = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const userId = req.user.id;
 
     // Get campaign
     const { data: campaigns } = await query('campaigns', 'select', {
-      filter: { id, user_id: req.user.id },
+      filter: { id, user_id: userId },
     });
 
     if (!campaigns || campaigns.length === 0) {
@@ -402,16 +403,24 @@ export const startCampaign = async (req, res, next) => {
       });
     }
 
-    // Get telephony config
-    const { data: configs } = await query('telephony_configs', 'select', {
-      filter: { user_id: req.user.id },
+    // Check if user has Twilio API keys configured (new system)
+    const { data: apiKeys } = await query('user_api_keys', 'select', {
+      filter: { user_id: userId, provider: 'twilio', is_active: true },
     });
 
-    if (!configs || configs.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Telephony configuration required',
+    // Fallback: Check old telephony_configs table for backward compatibility
+    if (!apiKeys || apiKeys.length === 0) {
+      const { data: configs } = await query('telephony_configs', 'select', {
+        filter: { user_id: userId },
       });
+
+      if (!configs || configs.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Twilio not configured. Please add your Twilio credentials in API Key Settings.',
+          setup_required: true,
+        });
+      }
     }
 
     // Update campaign state
@@ -425,12 +434,11 @@ export const startCampaign = async (req, res, next) => {
       filter: { campaign_id: id, status: 'pending' },
     });
 
-    // Add contacts to queue
-    const telephonyConfig = configs[0];
+    // Add contacts to queue with userId instead of telephony config
     for (const contact of contacts || []) {
       await campaignQueue.add('execute-call', {
         contactId: contact.id,
-        telephonyConfig,
+        userId: userId, // Pass userId instead of config
       });
     }
 

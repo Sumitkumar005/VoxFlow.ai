@@ -8,12 +8,12 @@ dotenv.config();
  * Process campaign calls sequentially
  */
 campaignQueue.process('execute-call', async (job) => {
-  const { contactId, telephonyConfig } = job.data;
+  const { contactId, userId } = job.data;
 
-  console.log(`Processing call for contact ${contactId}`);
+  console.log(`Processing call for contact ${contactId} (user: ${userId})`);
 
   try {
-    const result = await executeCampaignCall(contactId, telephonyConfig);
+    const result = await executeCampaignCall(contactId, userId);
 
     if (result.success) {
       console.log(`Call initiated successfully: ${result.run_number}`);

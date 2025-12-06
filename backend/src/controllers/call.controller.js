@@ -270,19 +270,25 @@ export const startPhoneCall = async (req, res, next) => {
       });
     }
 
-    // Get telephony config
-    const { data: configs } = await query('telephony_configs', 'select', {
-      filter: { user_id: req.user.id },
+    // Check if user has Twilio API keys configured (new system)
+    const { data: apiKeys } = await query('user_api_keys', 'select', {
+      filter: { user_id: req.user.id, provider: 'twilio', is_active: true },
     });
 
-    if (!configs || configs.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Telephony configuration not found. Please configure Twilio first.',
+    // Fallback: Check old telephony_configs table for backward compatibility
+    if (!apiKeys || apiKeys.length === 0) {
+      const { data: configs } = await query('telephony_configs', 'select', {
+        filter: { user_id: req.user.id },
       });
-    }
 
-    const config = configs[0];
+      if (!configs || configs.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Twilio not configured. Please add your Twilio credentials in API Key Settings.',
+          setup_required: true,
+        });
+      }
+    }
 
     // Create agent run
     const runNumber = generateRunNumber();
@@ -298,9 +304,14 @@ export const startPhoneCall = async (req, res, next) => {
 
     const run = runs[0];
 
-    // Make Twilio call with user-specific API keys
-    const webhookUrl = `${process.env.SERVER_URL || 'http://localhost:5000'}/api/calls/twilio/webhook/${run.id}`;
+    // Get SERVER_URL from environment (use deployed URL if available)
+    const serverUrl = process.env.SERVER_URL || 
+                     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 
+                     'http://localhost:5000');
     
+    const webhookUrl = `${serverUrl}/api/calls/twilio/webhook/${run.id}`;
+    
+    // Make Twilio call with user-specific API keys
     const callResult = await makeCall(userId, {
       to: phone_number,
       webhookUrl,

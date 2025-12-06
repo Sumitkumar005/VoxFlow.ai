@@ -189,14 +189,21 @@ export const getUserAPIKeyStatus = async (userId) => {
 
     // Update with actual data if available
     if (data && data.length > 0) {
+      console.log(`Found ${data.length} API key records for user ${userId}`);
       data.forEach(keyData => {
         const provider = keyData.provider;
-        if (status[provider]) {
+        const hasEncrypted = !!(keyData.api_key_encrypted && keyData.iv && keyData.auth_tag);
+        console.log(`Provider ${provider}: has_encrypted=${hasEncrypted}, encrypted_length=${keyData.api_key_encrypted?.length || 0}`);
+        
+        // Only mark as active if we have encrypted data
+        if (status[provider] && hasEncrypted) {
           status[provider].is_active = true;
           // Don't return the actual encrypted keys for security
           // Frontend will show masked values and allow editing
         }
       });
+    } else {
+      console.log(`No API key records found for user ${userId}`);
     }
 
     return status;

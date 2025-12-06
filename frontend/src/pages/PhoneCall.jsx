@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { agentAPI, callAPI, configAPI } from '../utils/api';
+import { agentAPI, callAPI, apiKeyAPI } from '../utils/api';
 import { ArrowLeft, Phone, Loader2 } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 
@@ -33,16 +33,14 @@ const PhoneCall = () => {
 
   const checkAPIKeys = async () => {
     try {
-      // Check if user has configured Twilio API keys
-      const response = await fetch('/api/api-keys/status', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      const data = await response.json();
-      setHasConfig(data.data?.twilio?.is_active || false);
+      // Check if user has configured Twilio API keys using the API utility
+      const response = await apiKeyAPI.getAll();
+      if (response.data.success) {
+        setHasConfig(response.data.data?.twilio?.is_active || false);
+      }
     } catch (error) {
       console.error('Failed to check API keys:', error);
+      setHasConfig(false);
     }
   };
 

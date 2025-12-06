@@ -55,7 +55,7 @@ export const processCampaignContacts = async (campaignId) => {
 /**
  * Execute a single campaign call
  */
-export const executeCampaignCall = async (contactId, telephonyConfig) => {
+export const executeCampaignCall = async (contactId, userId) => {
   try {
     // Get contact details
     const { data: contacts } = await query('campaign_contacts', 'select', {
@@ -90,15 +90,18 @@ export const executeCampaignCall = async (contactId, telephonyConfig) => {
 
     const run = runs[0];
 
-    // Make Twilio call
-    const webhookUrl = `${process.env.SERVER_URL || 'http://localhost:5000'}/api/calls/twilio/webhook/${run.id}`;
+    // Get SERVER_URL from environment (use deployed URL if available)
+    const serverUrl = process.env.SERVER_URL || 
+                     process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 
+                     'http://localhost:5000';
     
-    const callResult = await makeCall({
+    const webhookUrl = `${serverUrl}/api/calls/twilio/webhook/${run.id}`;
+    
+    // Make Twilio call with user-specific API keys
+    const callResult = await makeCall(userId, {
       to: contact.phone_number,
-      from: telephonyConfig.from_phone_number,
-      accountSid: telephonyConfig.account_sid,
-      authToken: telephonyConfig.auth_token,
       webhookUrl,
+      estimatedDuration: 120, // 2 minutes default estimation
     });
 
     if (callResult.success) {
