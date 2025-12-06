@@ -100,13 +100,23 @@ vercel
 4. **Set Environment Variables** (during deployment or after):
 ```bash
 vercel env add SUPABASE_URL
-vercel env add SUPABASE_ANON_KEY
+vercel env add SUPABASE_KEY
 vercel env add JWT_SECRET
+vercel env add MASTER_ENCRYPTION_KEY
 vercel env add GROQ_API_KEY
 vercel env add DEEPGRAM_API_KEY
 vercel env add TWILIO_ACCOUNT_SID
 vercel env add TWILIO_AUTH_TOKEN
 vercel env add TWILIO_PHONE_NUMBER
+```
+
+**Generate secure keys**:
+```bash
+# Generate JWT_SECRET (64 bytes)
+node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+
+# Generate MASTER_ENCRYPTION_KEY (32 bytes)
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
 5. **Deploy to Production**:
@@ -159,8 +169,9 @@ Go to your backend project → Settings → Environment Variables:
 
 ```
 SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_ANON_KEY=your-anon-key
-JWT_SECRET=your-secret-key-min-32-chars
+SUPABASE_KEY=your-anon-key
+JWT_SECRET=your-secret-key-min-64-chars
+MASTER_ENCRYPTION_KEY=your-encryption-key-64-hex-chars
 GROQ_API_KEY=gsk_...
 DEEPGRAM_API_KEY=your-deepgram-key
 TWILIO_ACCOUNT_SID=AC...
@@ -168,6 +179,7 @@ TWILIO_AUTH_TOKEN=your-auth-token
 TWILIO_PHONE_NUMBER=+1234567890
 NODE_ENV=production
 PORT=5000
+CLIENT_URL=https://your-frontend.vercel.app
 ```
 
 ### Frontend Environment Variables

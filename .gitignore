@@ -126,3 +126,74 @@ uploads/recordings/*
 # Kluster specific (existing)
 .github/instructions/kluster-code-verify.instructions.md
 .kluster
+
+
+
+Build and Deployment
+Domains
+Environments
+Environment Variables
+Git
+Integrations
+Deployment Protection
+Functions
+Caches
+Cron Jobs
+Microfrontends
+Project Members
+Drains
+Security
+Connectivity
+Advanced
+Environment Variables
+In order to provide your Deployment with Environment Variables at Build and Runtime, you may enter them right here, for the Environment of your choice. Learn more
+
+A new Deployment is required for your changes to take effect.
+
+Create new
+
+Link Shared Environment Variables
+Sensitive
+If enabled, you and your team will not be able to read the values after creation. Learn more
+
+
+Environments
+key
+CLIENT_KEY…
+value
+or paste the .env contents above
+
+
+Automatically expose System Environment Variables
+Search…
+All Environments
+
+Last Updated
+
+SUPABASE_URL
+All Environments
+•••••••••••••••
+
+Added 11h ago
+
+
+SUPABASE_ANON_KEY
+All Environments
+•••••••••••••••
+
+Added 11h ago
+
+
+JWT_SECRET
+All Environments
+•••••••••••••••
+
+Added 11h ago
+
+
+NODE_ENV
+All Environments
+•••••••••••••••
+
+Added 11h ago
+
