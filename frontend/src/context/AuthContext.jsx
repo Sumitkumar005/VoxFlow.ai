@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { authAPI } from '../utils/api';
 
 const AuthContext = createContext(null);
@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  const login = async (email, password) => {
+  const login = useCallback(async (email, password) => {
     try {
       const response = await authAPI.login({ email, password });
       const { token: newToken, user: newUser } = response.data.data;
@@ -41,9 +41,9 @@ export const AuthProvider = ({ children }) => {
         message: error.response?.data?.message || 'Login failed',
       };
     }
-  };
+  }, []);
 
-  const register = async (userData) => {
+  const register = useCallback(async (userData) => {
     try {
       const response = await authAPI.register(userData);
       const { token: newToken, user: newUser } = response.data.data;
@@ -63,16 +63,16 @@ export const AuthProvider = ({ children }) => {
         message: error.response?.data?.message || 'Registration failed',
       };
     }
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem('voxflow_token');
     localStorage.removeItem('voxflow_user');
     setToken(null);
     setUser(null);
-  };
+  }, []);
 
-  const value = {
+  const value = useMemo(() => ({
     user,
     token,
     loading,
@@ -80,7 +80,7 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
-  };
+  }), [user, token, loading, login, register, logout]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

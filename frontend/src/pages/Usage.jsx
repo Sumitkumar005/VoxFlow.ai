@@ -26,9 +26,11 @@ const Usage = () => {
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({});
   const [selectedPeriod, setSelectedPeriod] = useState('current'); // current, last30, last90
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     loadData();
+    setIsVisible(true);
   }, [filters, selectedPeriod]);
 
   const loadData = async () => {

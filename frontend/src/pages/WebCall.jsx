@@ -24,6 +24,11 @@ const WebCall = () => {
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [isAISpeaking, setIsAISpeaking] = useState(false);
   const [autoListenEnabled, setAutoListenEnabled] = useState(true);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
 
   // Use refs to track the latest state values for async operations
   const isRecordingRef = useRef(false);

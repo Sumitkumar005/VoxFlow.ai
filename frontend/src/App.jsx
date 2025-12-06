@@ -1,31 +1,36 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { AgentProvider } from './context/AgentContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
+import LoadingSpinner from './components/LoadingSpinner';
+import './styles/animations.css';
 
-// Pages
+// Eager load critical pages
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Home from './pages/Home';
-import CreateAgent from './pages/CreateAgent';
-import AgentList from './pages/AgentList';
-import AgentDetails from './pages/AgentDetails';
-import WebCall from './pages/WebCall';
-import PhoneCall from './pages/PhoneCall';
-import RunCompleted from './pages/RunCompleted';
-import RunHistory from './pages/RunHistory';
-import ServiceConfig from './pages/ServiceConfig';
-import ApiKeySettings from './pages/ApiKeySettings';
-import Upgrade from './pages/Upgrade';
-import Campaigns from './pages/Campaigns';
-import CreateCampaign from './pages/CreateCampaign';
-import CampaignDetails from './pages/CampaignDetails';
-import Usage from './pages/Usage';
-import Reports from './pages/Reports';
-import AdminLayout from './components/AdminLayout';
-import AdminDashboard from './pages/admin/AdminDashboard';
-import UserManagement from './pages/admin/UserManagement';
+
+// Lazy load all other pages for better performance
+const Home = lazy(() => import('./pages/Home'));
+const CreateAgent = lazy(() => import('./pages/CreateAgent'));
+const AgentList = lazy(() => import('./pages/AgentList'));
+const AgentDetails = lazy(() => import('./pages/AgentDetails'));
+const WebCall = lazy(() => import('./pages/WebCall'));
+const PhoneCall = lazy(() => import('./pages/PhoneCall'));
+const RunCompleted = lazy(() => import('./pages/RunCompleted'));
+const RunHistory = lazy(() => import('./pages/RunHistory'));
+const ServiceConfig = lazy(() => import('./pages/ServiceConfig'));
+const ApiKeySettings = lazy(() => import('./pages/ApiKeySettings'));
+const Upgrade = lazy(() => import('./pages/Upgrade'));
+const Campaigns = lazy(() => import('./pages/Campaigns'));
+const CreateCampaign = lazy(() => import('./pages/CreateCampaign'));
+const CampaignDetails = lazy(() => import('./pages/CampaignDetails'));
+const Usage = lazy(() => import('./pages/Usage'));
+const Reports = lazy(() => import('./pages/Reports'));
+const AdminLayout = lazy(() => import('./components/AdminLayout'));
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
+const UserManagement = lazy(() => import('./pages/admin/UserManagement'));
 
 function App() {
   return (
@@ -42,8 +47,9 @@ function App() {
               path="/admin/*" 
               element={
                 <ProtectedRoute adminOnly={true}>
-                  <AdminLayout>
-                    <Routes>
+                  <Suspense fallback={<LoadingSpinner message="Loading admin panel..." />}>
+                    <AdminLayout>
+                      <Routes>
                       <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
                       <Route path="/dashboard" element={<AdminDashboard />} />
                       {/* Placeholder routes for other admin pages */}
@@ -66,8 +72,9 @@ function App() {
                           <p className="text-gray-600">Coming soon...</p>
                         </div>
                       } />
-                    </Routes>
-                  </AdminLayout>
+                      </Routes>
+                    </AdminLayout>
+                  </Suspense>
                 </ProtectedRoute>
               } 
             />
@@ -80,7 +87,8 @@ function App() {
                   <div className="min-h-screen bg-gray-50">
                     <Navbar />
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                      <Routes>
+                      <Suspense fallback={<LoadingSpinner message="Loading..." />}>
+                        <Routes>
                         <Route path="/" element={<Navigate to="/agents" replace />} />
                         <Route path="/agents" element={<AgentList />} />
                         <Route path="/agents/create" element={<CreateAgent />} />
@@ -102,7 +110,8 @@ function App() {
                         <Route path="/config/api-keys" element={<ApiKeySettings />} />
                         
                         <Route path="/developers" element={<Home />} />
-                      </Routes>
+                        </Routes>
+                      </Suspense>
                     </div>
                   </div>
                 </ProtectedRoute>

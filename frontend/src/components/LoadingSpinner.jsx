@@ -8,10 +8,15 @@ const LoadingSpinner = ({ message = 'Loading...', size = 'md' }) => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center p-8">
-      <Loader2 className={`${sizeClasses[size]} animate-spin text-blue-600`} />
+    <div className="flex flex-col items-center justify-center p-8 animate-fade-in">
+      <div className="relative">
+        <Loader2 className={`${sizeClasses[size]} animate-spin text-purple-600`} />
+        <div className="absolute inset-0 animate-ping opacity-20">
+          <Loader2 className={`${sizeClasses[size]} text-purple-600`} />
+        </div>
+      </div>
       {message && (
-        <p className="mt-4 text-gray-600">{message}</p>
+        <p className="mt-4 text-gray-600 animate-pulse">{message}</p>
       )}
     </div>
   );

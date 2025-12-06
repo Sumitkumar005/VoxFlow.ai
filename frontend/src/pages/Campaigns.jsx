@@ -9,9 +9,11 @@ const Campaigns = () => {
   const navigate = useNavigate();
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     loadCampaigns();
+    setIsVisible(true);
   }, []);
 
   const loadCampaigns = async () => {
@@ -57,9 +59,9 @@ const Campaigns = () => {
           </div>
           <button
             onClick={() => navigate('/campaigns/create')}
-            className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-purple-800 transition-all shadow-lg shadow-purple-500/30 flex items-center space-x-2"
+            className="group px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-purple-800 transition-all duration-300 shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-105 active:scale-95 flex items-center space-x-2"
           >
-            <Plus size={20} />
+            <Plus size={20} className="group-hover:rotate-90 transition-transform" />
             <span>Create Campaign</span>
           </button>
         </div>

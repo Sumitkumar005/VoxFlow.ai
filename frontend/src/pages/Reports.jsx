@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { reportAPI, agentAPI } from '../utils/api';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Download, Calendar } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
+
+// Lazy load the chart component to reduce initial bundle size
+const ReportChart = lazy(() => import('../components/ReportChart'));
 
 const Reports = () => {
   const [agents, setAgents] = useState([]);
@@ -10,9 +12,11 @@ const Reports = () => {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [reportData, setReportData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     loadAgents();
+    setIsVisible(true);
   }, []);
 
   useEffect(() => {
@@ -149,45 +153,29 @@ const Reports = () => {
         </div>
 
         {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Disposition Distribution */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Disposition Distribution</h3>
-            {dispositionChartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={dispositionChartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="count" fill="#8B5CF6" />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <p className="text-center py-12 text-gray-500">No data available</p>
-            )}
-          </div>
+        <Suspense fallback={<LoadingSpinner message="Loading charts..." />}>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Disposition Distribution */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Disposition Distribution</h3>
+              {dispositionChartData.length > 0 ? (
+                <ReportChart data={{ hourly_stats: dispositionChartData.map(d => ({ hour: d.name, total_calls: d.count, successful_calls: 0, failed_calls: 0 })) }} />
+              ) : (
+                <p className="text-center py-12 text-gray-500">No data available</p>
+              )}
+            </div>
 
-          {/* Call Duration Distribution */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Call Duration Distribution</h3>
-            {durationChartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={durationChartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="count" fill="#8B5CF6" />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <p className="text-center py-12 text-gray-500">No data available</p>
-            )}
+            {/* Call Duration Distribution */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Call Duration Distribution</h3>
+              {durationChartData.length > 0 ? (
+                <ReportChart data={{ hourly_stats: durationChartData.map(d => ({ hour: d.name, total_calls: d.count, successful_calls: 0, failed_calls: 0 })) }} />
+              ) : (
+                <p className="text-center py-12 text-gray-500">No data available</p>
+              )}
+            </div>
           </div>
-        </div>
+        </Suspense>
       </div>
     </div>
   );

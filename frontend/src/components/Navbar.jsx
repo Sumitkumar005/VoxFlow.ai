@@ -40,14 +40,14 @@ const Navbar = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/agents" className="flex items-center space-x-3 group">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/30 group-hover:shadow-purple-500/50 transition-all">
-              <Zap className="h-5 w-5 text-white" />
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/30 group-hover:shadow-purple-500/50 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+              <Zap className="h-5 w-5 text-white group-hover:rotate-12 transition-transform" />
             </div>
             <div>
-              <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent">
+              <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent group-hover:from-purple-700 group-hover:to-purple-900 transition-all">
                 VoxFlow
               </span>
-              <span className="block text-xs text-gray-500 -mt-1">Voice AI Platform</span>
+              <span className="block text-xs text-gray-500 -mt-1 group-hover:text-purple-600 transition-colors">Voice AI Platform</span>
             </div>
           </Link>
 
@@ -60,13 +60,13 @@ const Navbar = () => {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all ${
+                  className={`group flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-300 hover:scale-105 active:scale-95 ${
                     active
-                      ? 'bg-purple-50 text-purple-700 shadow-sm'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      ? 'bg-purple-50 text-purple-700 shadow-md shadow-purple-500/20'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 hover:shadow-sm'
                   }`}
                 >
-                  <Icon size={18} className={active ? 'text-purple-600' : ''} />
+                  <Icon size={18} className={`${active ? 'text-purple-600' : ''} group-hover:scale-110 transition-transform`} />
                   <span>{item.label}</span>
                 </Link>
               );
@@ -77,33 +77,33 @@ const Navbar = () => {
           <div className="flex items-center space-x-4">
             <Link
               to="/config"
-              className={`p-2 rounded-lg transition-all ${
+              className={`group p-2 rounded-lg transition-all duration-300 hover:scale-110 active:scale-95 ${
                 isActive('/config')
-                  ? 'bg-purple-50 text-purple-600'
+                  ? 'bg-purple-50 text-purple-600 shadow-md shadow-purple-500/20'
                   : 'text-gray-600 hover:bg-gray-50'
               }`}
               title="Settings"
             >
-              <Settings size={20} />
+              <Settings size={20} className="group-hover:rotate-90 transition-transform duration-300" />
             </Link>
             
             <div className="relative">
               <button
                 onClick={() => setShowUserMenu(!showUserMenu)}
-                className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                className="group flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-all duration-300 hover:scale-105 active:scale-95"
               >
-                <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-purple-500/50 transition-all duration-300">
                   <User className="w-4 h-4 text-white" />
                 </div>
                 <div className="hidden lg:block text-left">
-                  <div className="text-sm font-medium text-gray-900">
+                  <div className="text-sm font-medium text-gray-900 group-hover:text-purple-600 transition-colors">
                     {user?.email?.split('@')[0] || 'User'}
                   </div>
                   <div className="text-xs text-gray-500 capitalize">
                     {user?.subscription_tier || 'Free'} Plan
                   </div>
                 </div>
-                <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${showUserMenu ? 'rotate-180' : ''}`} />
               </button>
 
               {/* Dropdown Menu */}
@@ -113,7 +113,7 @@ const Navbar = () => {
                     className="fixed inset-0 z-10" 
                     onClick={() => setShowUserMenu(false)}
                   />
-                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-20">
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-2xl border-2 border-gray-200 py-2 z-20 animate-scale-in">
                     <div className="px-4 py-3 border-b border-gray-100">
                       <p className="text-sm font-medium text-gray-900">{user?.email}</p>
                       <p className="text-xs text-gray-500 mt-1 capitalize">
@@ -124,18 +124,18 @@ const Navbar = () => {
                     <Link
                       to="/config"
                       onClick={() => setShowUserMenu(false)}
-                      className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      className="group flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-purple-600 transition-all duration-300"
                     >
-                      <Settings className="w-4 h-4" />
+                      <Settings className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" />
                       <span>Settings</span>
                     </Link>
                     
                     <Link
                       to="/upgrade"
                       onClick={() => setShowUserMenu(false)}
-                      className="flex items-center space-x-2 px-4 py-2 text-sm text-purple-600 hover:bg-purple-50 transition-colors"
+                      className="group flex items-center space-x-2 px-4 py-2 text-sm text-purple-600 hover:bg-purple-50 transition-all duration-300"
                     >
-                      <Zap className="w-4 h-4" />
+                      <Zap className="w-4 h-4 group-hover:scale-110 transition-transform" />
                       <span>Upgrade Plan</span>
                     </Link>
                     
@@ -145,9 +145,9 @@ const Navbar = () => {
                           setShowUserMenu(false);
                           handleLogout();
                         }}
-                        className="flex items-center space-x-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors w-full"
+                        className="group flex items-center space-x-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-all duration-300 w-full"
                       >
-                        <LogOut className="w-4 h-4" />
+                        <LogOut className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                         <span>Logout</span>
                       </button>
                     </div>

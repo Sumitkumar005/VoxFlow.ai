@@ -11,6 +11,7 @@ const CreateAgent = () => {
   const [loading, setLoading] = useState(false);
   const [usage, setUsage] = useState(null);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [isVisible, setIsVisible] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     type: 'INBOUND',
@@ -19,6 +20,10 @@ const CreateAgent = () => {
     use_case: '',
     first_message: '',
   });
+
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
 
   useEffect(() => {
     loadUsage();
@@ -119,9 +124,9 @@ const CreateAgent = () => {
       <div className="max-w-7xl mx-auto px-6 py-8">
         <button
           onClick={() => navigate('/agents')}
-          className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
+          className="group flex items-center space-x-2 text-gray-600 hover:text-purple-600 mb-6 transition-all duration-300 hover:scale-105 active:scale-95"
         >
-          <ArrowLeft size={20} />
+          <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
           <span className="font-medium">Back to Agents</span>
         </button>
 
@@ -192,9 +197,9 @@ const CreateAgent = () => {
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, type: 'INBOUND' })}
-                    className={`p-4 rounded-lg border-2 transition-all ${
+                    className={`p-4 rounded-lg border-2 transition-all duration-300 hover:scale-105 hover:shadow-lg ${
                       formData.type === 'INBOUND'
-                        ? 'border-purple-500 bg-purple-50'
+                        ? 'border-purple-500 bg-purple-50 shadow-lg shadow-purple-500/20'
                         : 'border-gray-200 hover:border-purple-300'
                     }`}
                   >

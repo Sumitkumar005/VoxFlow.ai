@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAgent } from '../context/AgentContext';
 import { Plus, Search, RefreshCw, Bot, Phone, Clock, Settings, Trash2, Play } from 'lucide-react';
@@ -8,6 +8,48 @@ import UsageLimitNotification from '../components/UsageLimitNotification';
 import { useAuth } from '../context/AuthContext';
 import { usageAPI } from '../utils/api';
 
+// Memoized Agent Card Component
+const AgentCard = memo(({ agent, isSelected, onClick, index, isVisible }) => (
+  <button
+    onClick={onClick}
+    className={`w-full text-left p-4 rounded-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-md ${
+      isSelected
+        ? 'bg-purple-50 border-2 border-purple-500 shadow-lg shadow-purple-500/20'
+        : 'bg-white border-2 border-gray-200 hover:border-purple-300'
+    } ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'}`}
+    style={{ transitionDelay: `${index * 50}ms` }}
+  >
+    <div className="flex items-start justify-between mb-2">
+      <div className="flex items-center space-x-2">
+        <div className={`w-2 h-2 rounded-full ${
+          agent.total_runs > 0 ? 'bg-green-500' : 'bg-gray-300'
+        }`} />
+        <h3 className="font-semibold text-gray-900 text-sm">{agent.name}</h3>
+      </div>
+      <span className={`px-2 py-0.5 text-xs rounded-full ${
+        agent.type === 'INBOUND'
+          ? 'bg-blue-100 text-blue-700'
+          : 'bg-purple-100 text-purple-700'
+      }`}>
+        {agent.type}
+      </span>
+    </div>
+    <p className="text-xs text-gray-500 line-clamp-2 mb-2">{agent.use_case}</p>
+    <div className="flex items-center justify-between text-xs text-gray-400">
+      <span className="flex items-center">
+        <Phone className="w-3 h-3 mr-1" />
+        {agent.total_runs} calls
+      </span>
+      <span className="flex items-center">
+        <Clock className="w-3 h-3 mr-1" />
+        {new Date(agent.created_at).toLocaleDateString()}
+      </span>
+    </div>
+  </button>
+));
+
+AgentCard.displayName = 'AgentCard';
+
 const AgentList = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -15,6 +57,11 @@ const AgentList = () => {
   const [usage, setUsage] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedAgent, setSelectedAgent] = useState(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
 
   useEffect(() => {
     fetchAgents();
@@ -36,17 +83,19 @@ const AgentList = () => {
     }
   };
 
-  const handleDelete = async (agent) => {
+  const handleDelete = useCallback(async (agent) => {
     if (window.confirm(`Delete agent "${agent.name}"?`)) {
       await deleteAgent(agent.id);
       if (selectedAgent?.id === agent.id) {
         setSelectedAgent(agents[0]);
       }
     }
-  };
+  }, [deleteAgent, selectedAgent, agents]);
 
-  const filteredAgents = agents.filter(agent =>
-    agent.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredAgents = useMemo(() => 
+    agents.filter(agent =>
+      agent.name.toLowerCase().includes(searchQuery.toLowerCase())
+    ), [agents, searchQuery]
   );
 
   if (loading) return <LoadingSpinner />;
@@ -62,14 +111,14 @@ const AgentList = () => {
             <div className="flex items-center space-x-2">
               <button
                 onClick={fetchAgents}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-gray-100 rounded-lg transition-all duration-300 hover:scale-110 active:scale-95 group"
                 title="Refresh"
               >
-                <RefreshCw className="w-4 h-4 text-gray-600" />
+                <RefreshCw className="w-4 h-4 text-gray-600 group-hover:rotate-180 transition-transform duration-500" />
               </button>
               <button
                 onClick={() => navigate('/agents/create')}
-                className="p-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+                className="p-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-purple-500/50 active:scale-95"
                 title="Create Agent"
               >
                 <Plus className="w-4 h-4" />
@@ -78,14 +127,14 @@ const AgentList = () => {
           </div>
 
           {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <div className="relative group">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-purple-500 transition-colors" />
             <input
               type="text"
               placeholder="Search agents..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-300 hover:border-gray-300 hover:shadow-md"
             />
           </div>
         </div>
@@ -109,43 +158,15 @@ const AgentList = () => {
             </div>
           ) : (
             <div className="p-3 space-y-2">
-              {filteredAgents.map((agent) => (
-                <button
+              {filteredAgents.map((agent, index) => (
+                <AgentCard
                   key={agent.id}
+                  agent={agent}
+                  isSelected={selectedAgent?.id === agent.id}
                   onClick={() => setSelectedAgent(agent)}
-                  className={`w-full text-left p-4 rounded-lg transition-all ${
-                    selectedAgent?.id === agent.id
-                      ? 'bg-purple-50 border-2 border-purple-500'
-                      : 'bg-white border border-gray-200 hover:border-purple-300 hover:shadow-sm'
-                  }`}
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center space-x-2">
-                      <div className={`w-2 h-2 rounded-full ${
-                        agent.total_runs > 0 ? 'bg-green-500' : 'bg-gray-300'
-                      }`} />
-                      <h3 className="font-semibold text-gray-900 text-sm">{agent.name}</h3>
-                    </div>
-                    <span className={`px-2 py-0.5 text-xs rounded-full ${
-                      agent.type === 'INBOUND'
-                        ? 'bg-blue-100 text-blue-700'
-                        : 'bg-purple-100 text-purple-700'
-                    }`}>
-                      {agent.type}
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-500 line-clamp-2 mb-2">{agent.use_case}</p>
-                  <div className="flex items-center justify-between text-xs text-gray-400">
-                    <span className="flex items-center">
-                      <Phone className="w-3 h-3 mr-1" />
-                      {agent.total_runs} calls
-                    </span>
-                    <span className="flex items-center">
-                      <Clock className="w-3 h-3 mr-1" />
-                      {new Date(agent.created_at).toLocaleDateString()}
-                    </span>
-                  </div>
-                </button>
+                  index={index}
+                  isVisible={isVisible}
+                />
               ))}
             </div>
           )}
@@ -189,16 +210,16 @@ const AgentList = () => {
                 <div className="flex items-center space-x-2">
                   <button
                     onClick={() => navigate(`/agents/${selectedAgent.id}/edit`)}
-                    className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-2"
+                    className="group px-4 py-2 bg-white border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-purple-500 hover:text-purple-600 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center space-x-2"
                   >
-                    <Settings className="w-4 h-4" />
+                    <Settings className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" />
                     <span>Settings</span>
                   </button>
                   <button
                     onClick={() => handleDelete(selectedAgent)}
-                    className="px-4 py-2 bg-white border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors flex items-center space-x-2"
+                    className="group px-4 py-2 bg-white border-2 border-red-300 text-red-600 rounded-lg hover:bg-red-50 hover:border-red-500 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center space-x-2"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-4 h-4 group-hover:scale-110 transition-transform" />
                     <span>Delete</span>
                   </button>
                 </div>
@@ -208,16 +229,16 @@ const AgentList = () => {
               <div className="flex items-center space-x-3">
                 <button
                   onClick={() => navigate(`/agents/${selectedAgent.id}/web-call`)}
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all shadow-lg shadow-purple-500/30 flex items-center justify-center space-x-2 font-medium"
+                  className="group flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-300 shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-105 active:scale-95 flex items-center justify-center space-x-2 font-medium"
                 >
-                  <Play className="w-5 h-5" />
+                  <Play className="w-5 h-5 group-hover:scale-110 transition-transform" />
                   <span>Test Agent</span>
                 </button>
                 <button
                   onClick={() => navigate(`/agents/${selectedAgent.id}/phone-call`)}
-                  className="flex-1 px-6 py-3 bg-white border-2 border-purple-600 text-purple-600 rounded-lg hover:bg-purple-50 transition-colors flex items-center justify-center space-x-2 font-medium"
+                  className="group flex-1 px-6 py-3 bg-white border-2 border-purple-600 text-purple-600 rounded-lg hover:bg-purple-50 transition-all duration-300 hover:scale-105 active:scale-95 hover:shadow-lg flex items-center justify-center space-x-2 font-medium"
                 >
-                  <Phone className="w-5 h-5" />
+                  <Phone className="w-5 h-5 group-hover:rotate-12 transition-transform" />
                   <span>Make Call</span>
                 </button>
               </div>
@@ -225,29 +246,29 @@ const AgentList = () => {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-3 gap-4 mb-6">
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="bg-white rounded-xl shadow-sm border-2 border-gray-200 p-6 hover:shadow-xl hover:scale-105 hover:border-purple-300 transition-all duration-300 cursor-pointer group">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-gray-600 text-sm">Total Calls</span>
-                  <Phone className="w-5 h-5 text-purple-600" />
+                  <span className="text-gray-600 text-sm group-hover:text-purple-600 transition-colors">Total Calls</span>
+                  <Phone className="w-5 h-5 text-purple-600 group-hover:rotate-12 transition-transform" />
                 </div>
                 <p className="text-3xl font-bold text-gray-900">{selectedAgent.total_runs}</p>
                 <p className="text-xs text-gray-500 mt-1">All time</p>
               </div>
 
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="bg-white rounded-xl shadow-sm border-2 border-gray-200 p-6 hover:shadow-xl hover:scale-105 hover:border-purple-300 transition-all duration-300 cursor-pointer group">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-gray-600 text-sm">Agent Type</span>
-                  <Bot className="w-5 h-5 text-purple-600" />
+                  <span className="text-gray-600 text-sm group-hover:text-purple-600 transition-colors">Agent Type</span>
+                  <Bot className="w-5 h-5 text-purple-600 group-hover:scale-110 transition-transform" />
                 </div>
                 <p className="text-2xl font-bold text-gray-900">{selectedAgent.type}</p>
                 <p className="text-xs text-gray-500 mt-1">Call direction</p>
               </div>
 
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="bg-white rounded-xl shadow-sm border-2 border-gray-200 p-6 hover:shadow-xl hover:scale-105 hover:border-purple-300 transition-all duration-300 cursor-pointer group">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-gray-600 text-sm">Status</span>
+                  <span className="text-gray-600 text-sm group-hover:text-purple-600 transition-colors">Status</span>
                   <div className={`w-3 h-3 rounded-full ${
-                    selectedAgent.total_runs > 0 ? 'bg-green-500' : 'bg-gray-300'
+                    selectedAgent.total_runs > 0 ? 'bg-green-500 animate-pulse' : 'bg-gray-300'
                   }`} />
                 </div>
                 <p className="text-2xl font-bold text-gray-900">

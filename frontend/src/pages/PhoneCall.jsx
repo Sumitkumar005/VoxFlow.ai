@@ -12,10 +12,12 @@ const PhoneCall = () => {
   const [hasConfig, setHasConfig] = useState(false);
   const [loading, setLoading] = useState(true);
   const [calling, setCalling] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     loadAgent();
     checkAPIKeys();
+    setIsVisible(true);
   }, [id]);
 
   const loadAgent = async () => {

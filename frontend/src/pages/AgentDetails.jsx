@@ -10,9 +10,11 @@ const AgentDetails = () => {
   const navigate = useNavigate();
   const [agent, setAgent] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     loadAgent();
+    setIsVisible(true);
   }, [id]);
 
   const loadAgent = async () => {

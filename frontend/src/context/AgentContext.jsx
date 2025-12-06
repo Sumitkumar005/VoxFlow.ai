@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, useMemo } from 'react';
 import { agentAPI } from '../utils/api';
 
 const AgentContext = createContext(null);
@@ -7,20 +7,31 @@ export const AgentProvider = ({ children }) => {
   const [agents, setAgents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [cache, setCache] = useState({});
 
-  const fetchAgents = useCallback(async () => {
+  const fetchAgents = useCallback(async (force = false) => {
+    // Check cache first (5 minute cache)
+    const cacheKey = 'agents_list';
+    const now = Date.now();
+    if (!force && cache[cacheKey] && (now - cache[cacheKey].timestamp < 300000)) {
+      setAgents(cache[cacheKey].data);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
       const response = await agentAPI.getAll();
-      setAgents(response.data.data || []);
+      const data = response.data.data || [];
+      setAgents(data);
+      setCache(prev => ({ ...prev, [cacheKey]: { data, timestamp: now } }));
     } catch (err) {
       console.error('Fetch agents error:', err);
       setError(err.response?.data?.message || 'Failed to fetch agents');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [cache]);
 
   const createAgent = async (agentData) => {
     try {
@@ -73,7 +84,7 @@ export const AgentProvider = ({ children }) => {
     }
   };
 
-  const value = {
+  const value = useMemo(() => ({
     agents,
     loading,
     error,
@@ -81,7 +92,7 @@ export const AgentProvider = ({ children }) => {
     createAgent,
     updateAgent,
     deleteAgent,
-  };
+  }), [agents, loading, error, fetchAgents]);
 
   return <AgentContext.Provider value={value}>{children}</AgentContext.Provider>;
 };

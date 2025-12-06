@@ -12,6 +12,7 @@ const Upgrade = () => {
   const { user } = useAuth();
   const [usage, setUsage] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isVisible, setIsVisible] = useState(false);
 
   // Get reason for upgrade from URL params
   const reason = searchParams.get('reason'); // 'tokens', 'agents', 'features'
@@ -19,6 +20,7 @@ const Upgrade = () => {
 
   useEffect(() => {
     loadUsage();
+    setIsVisible(true);
   }, []);
 
   const loadUsage = async () => {
