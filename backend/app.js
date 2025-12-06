@@ -78,7 +78,8 @@ app.use(cors({
     process.env.CLIENT_URL || 'http://localhost:5173',
     'http://localhost:5173',
     'http://localhost:5174',
-    'https://vox-flow-ai.vercel.app'
+    'https://vox-flow-ai.vercel.app',
+    'https://vox-flow-ai-6icv.vercel.app'
   ],
   credentials: true,
 }));
