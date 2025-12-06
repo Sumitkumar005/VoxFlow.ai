@@ -2,9 +2,17 @@ import multer from 'multer';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
+import os from 'os';
+
+// Use /tmp for serverless environments (Vercel), otherwise use ./uploads
+const isServerless = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME;
+const uploadBaseDir = isServerless ? path.join(os.tmpdir(), 'uploads') : './uploads';
 
 // Ensure upload directories exist
-const uploadDirs = ['./uploads/csv', './uploads/recordings'];
+const uploadDirs = [
+  path.join(uploadBaseDir, 'csv'),
+  path.join(uploadBaseDir, 'recordings')
+];
 uploadDirs.forEach(dir => {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
@@ -14,7 +22,7 @@ uploadDirs.forEach(dir => {
 // Configure storage for CSV files
 const csvStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, './uploads/csv');
+    cb(null, path.join(uploadBaseDir, 'csv'));
   },
   filename: (req, file, cb) => {
     const uniqueName = `${uuidv4()}_${file.originalname}`;
