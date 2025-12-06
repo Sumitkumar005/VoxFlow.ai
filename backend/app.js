@@ -129,8 +129,8 @@ app.get('/', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/agents', agentRoutes);
 app.use('/api/campaigns', campaignRoutes);
-app.use('/api/calls', callRoutes);
-app.use('/api/calls', webhookRouter); // Public webhook routes (no auth, no rate limiting)
+app.use('/api/calls', webhookRouter); // Public webhook routes FIRST (no auth, no rate limiting)
+app.use('/api/calls', callRoutes); // Authenticated call routes AFTER webhooks
 app.use('/api/config', configRoutes);
 app.use('/api/usage', usageRoutes);
 app.use('/api/reports', reportRoutes);
