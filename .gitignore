@@ -137,7 +137,7 @@ apply-migration-*.sql
 check-*.sql
 fix-*.sql
 
-# Documentation that's not needed in repo
+# Documentation and deployment guides (not needed in repo)
 ALL_PAGES_TRANSFORMED.md
 COMPLETE_FRONTEND_TRANSFORMATION.md
 FINAL_TRANSFORMATION_SUMMARY.md
@@ -148,6 +148,9 @@ FRONTEND_DEPLOY.md
 VERCEL_FIX.md
 CUSTOM_DOMAIN_SETUP.md
 DEPLOYMENT_COMPLETE.md
+SAAS_DEPLOYMENT.md
+VERCEL_DEPLOYMENT.md
+deploy.md
 
 # Keep only essential docs:
 # - README.md
@@ -155,6 +158,4 @@ DEPLOYMENT_COMPLETE.md
 # - LICENSE
 # - SECURITY.md
 # - SETUP_INSTRUCTIONS.md
-# - VERCEL_DEPLOYMENT.md
-# - SAAS_DEPLOYMENT.md
 
