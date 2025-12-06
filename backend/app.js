@@ -79,7 +79,8 @@ app.use(cors({
     'http://localhost:5173',
     'http://localhost:5174',
     'https://vox-flow-ai.vercel.app',
-    'https://vox-flow-ai-6icv.vercel.app'
+    'https://vox-flow-ai-6icv.vercel.app',
+    'https://app.sumitsaini.com'
   ],
   credentials: true,
 }));
