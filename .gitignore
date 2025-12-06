@@ -123,77 +123,38 @@ uploads/recordings/*
 !uploads/csv/.gitkeep
 !uploads/recordings/.gitkeep
 
-# Kluster specific (existing)
-.github/instructions/kluster-code-verify.instructions.md
-.kluster
+# Kiro AI Assistant
+.kiro/
 
+# Temporary and development files
+*.text
+*.txt
+app_temp.js
+todo.md
 
+# SQL migration and debug files (keep only in supabase/migrations)
+apply-migration-*.sql
+check-*.sql
+fix-*.sql
 
-Build and Deployment
-Domains
-Environments
-Environment Variables
-Git
-Integrations
-Deployment Protection
-Functions
-Caches
-Cron Jobs
-Microfrontends
-Project Members
-Drains
-Security
-Connectivity
-Advanced
-Environment Variables
-In order to provide your Deployment with Environment Variables at Build and Runtime, you may enter them right here, for the Environment of your choice. Learn more
+# Documentation that's not needed in repo
+ALL_PAGES_TRANSFORMED.md
+COMPLETE_FRONTEND_TRANSFORMATION.md
+FINAL_TRANSFORMATION_SUMMARY.md
+FIX_DATABASE_ERROR.md
+FRONTEND_COMPLETE.md
+FRONTEND_TRANSFORMATION_STATUS.md
+FRONTEND_DEPLOY.md
+VERCEL_FIX.md
+CUSTOM_DOMAIN_SETUP.md
+DEPLOYMENT_COMPLETE.md
 
-A new Deployment is required for your changes to take effect.
-
-Create new
-
-Link Shared Environment Variables
-Sensitive
-If enabled, you and your team will not be able to read the values after creation. Learn more
-
-
-Environments
-key
-CLIENT_KEY…
-value
-or paste the .env contents above
-
-
-Automatically expose System Environment Variables
-Search…
-All Environments
-
-Last Updated
-
-SUPABASE_URL
-All Environments
-•••••••••••••••
-
-Added 11h ago
-
-
-SUPABASE_ANON_KEY
-All Environments
-•••••••••••••••
-
-Added 11h ago
-
-
-JWT_SECRET
-All Environments
-•••••••••••••••
-
-Added 11h ago
-
-
-NODE_ENV
-All Environments
-•••••••••••••••
-
-Added 11h ago
+# Keep only essential docs:
+# - README.md
+# - CONTRIBUTING.md
+# - LICENSE
+# - SECURITY.md
+# - SETUP_INSTRUCTIONS.md
+# - VERCEL_DEPLOYMENT.md
+# - SAAS_DEPLOYMENT.md
 
