@@ -6,37 +6,45 @@ import { Server } from 'socket.io';
 dotenv.config();
 
 const PORT = process.env.PORT || 5000;
-const httpServer = createServer(app);
 
-// Initialize Socket.io for real-time call updates
-const io = new Server(httpServer, {
-  cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
-    methods: ['GET', 'POST'],
-  },
-});
+// Check if running in serverless environment (Vercel)
+const isServerless = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME;
 
-// Make io available to routes
-app.set('io', io);
+let io;
 
-// Socket.io connection handling
-io.on('connection', (socket) => {
-  console.log('Client connected:', socket.id);
+if (!isServerless) {
+  // Traditional server setup for local development
+  const httpServer = createServer(app);
 
-  socket.on('disconnect', () => {
-    console.log('Client disconnected:', socket.id);
+  // Initialize Socket.io for real-time call updates
+  io = new Server(httpServer, {
+    cors: {
+      origin: process.env.CLIENT_URL || 'http://localhost:5173',
+      methods: ['GET', 'POST'],
+    },
   });
 
-  // Join room for specific agent run
-  socket.on('join-run', (runId) => {
-    socket.join(`run-${runId}`);
-    console.log(`Client joined run room: run-${runId}`);
-  });
-});
+  // Make io available to routes
+  app.set('io', io);
 
-// Start server
-httpServer.listen(PORT, () => {
-  console.log(`
+  // Socket.io connection handling
+  io.on('connection', (socket) => {
+    console.log('Client connected:', socket.id);
+
+    socket.on('disconnect', () => {
+      console.log('Client disconnected:', socket.id);
+    });
+
+    // Join room for specific agent run
+    socket.on('join-run', (runId) => {
+      socket.join(`run-${runId}`);
+      console.log(`Client joined run room: run-${runId}`);
+    });
+  });
+
+  // Start server
+  httpServer.listen(PORT, () => {
+    console.log(`
     ╔════════════════════════════════════════╗
     ║  🎙️  VoxFlow API Server Running     ║
     ╠════════════════════════════════════════╣
@@ -45,14 +53,17 @@ httpServer.listen(PORT, () => {
     ║  URL: http://localhost:${PORT.toString().padEnd(17)} ║
     ╚════════════════════════════════════════╝
   `);
-});
-
-// Handle graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('SIGTERM signal received: closing HTTP server');
-  httpServer.close(() => {
-    console.log('HTTP server closed');
   });
-});
 
+  // Handle graceful shutdown
+  process.on('SIGTERM', () => {
+    console.log('SIGTERM signal received: closing HTTP server');
+    httpServer.close(() => {
+      console.log('HTTP server closed');
+    });
+  });
+}
+
+// Export app for Vercel serverless functions
+export default app;
 export { io };
