@@ -6,14 +6,6 @@
  */
 
 import winston from 'winston';
-import path from 'path';
-import fs from 'fs';
-
-// Ensure logs directory exists
-const logsDir = path.join(process.cwd(), 'logs');
-if (!fs.existsSync(logsDir)) {
-  fs.mkdirSync(logsDir, { recursive: true });
-}
 
 // Custom log format
 const logFormat = winston.format.combine(
@@ -32,45 +24,48 @@ const logFormat = winston.format.combine(
   })
 );
 
+// Determine if running in serverless environment (Vercel)
+const isServerless = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME;
+
 // Create Winston logger instance
-const logger = winston.createLogger({
-  level: process.env.LOG_LEVEL || 'info',
-  format: logFormat,
-  defaultMeta: {
-    service: 'voxflow-api',
-    environment: process.env.NODE_ENV || 'development'
-  },
-  transports: [
-    // Console transport for development
-    new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.simple()
-      )
-    }),
-    
-    // File transport for all logs
+const transports = [
+  // Console transport (works in all environments)
+  new winston.transports.Console({
+    format: winston.format.combine(
+      winston.format.colorize(),
+      winston.format.simple()
+    )
+  })
+];
+
+// Only add file transports in non-serverless environments
+if (!isServerless) {
+  const path = await import('path');
+  const fs = await import('fs');
+  
+  const logsDir = path.join(process.cwd(), 'logs');
+  if (!fs.existsSync(logsDir)) {
+    fs.mkdirSync(logsDir, { recursive: true });
+  }
+  
+  transports.push(
     new winston.transports.File({
       filename: path.join(logsDir, 'app.log'),
-      maxsize: 10485760, // 10MB
+      maxsize: 10485760,
       maxFiles: 5,
       tailable: true
     }),
-    
-    // Separate file for errors
     new winston.transports.File({
       filename: path.join(logsDir, 'error.log'),
       level: 'error',
-      maxsize: 10485760, // 10MB
+      maxsize: 10485760,
       maxFiles: 5,
       tailable: true
     }),
-    
-    // Separate file for security events
     new winston.transports.File({
       filename: path.join(logsDir, 'security.log'),
       level: 'warn',
-      maxsize: 10485760, // 10MB
+      maxsize: 10485760,
       maxFiles: 10,
       tailable: true,
       format: winston.format.combine(
@@ -78,7 +73,17 @@ const logger = winston.createLogger({
         winston.format.json()
       )
     })
-  ]
+  );
+}
+
+const logger = winston.createLogger({
+  level: process.env.LOG_LEVEL || 'info',
+  format: logFormat,
+  defaultMeta: {
+    service: 'voxflow-api',
+    environment: process.env.NODE_ENV || 'development'
+  },
+  transports
 });
 
 class LoggingService {
