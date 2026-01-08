@@ -6,7 +6,7 @@ An open-source AI-powered voice calling platform for automated customer interact
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
 
-## ✨ Features
+## ✨ Features(note: some features are in dev but not in prod, will do soon)
 
 - 🤖 **AI Voice Agents** - Create custom AI agents with specific personalities and use cases
 - 📞 **Web & Phone Calls** - Test in browser or make real phone calls via Twilio
